@@ -1,0 +1,5 @@
+interface:
+  display_name: "RDD Design"
+  short_description: "Design API/service contracts and reliability guards before implementation."
+  default_prompt: "Use rdd-design to analyze this API/service task, define the reliability contract, identify P0-P4 risks, choose the smallest architecture, and list verification guards before implementation."
+

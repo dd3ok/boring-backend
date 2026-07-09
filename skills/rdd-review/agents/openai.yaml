@@ -1,0 +1,5 @@
+interface:
+  display_name: "RDD Review"
+  short_description: "Review API/service code for reliability gaps and operational risk."
+  default_prompt: "Use rdd-review to self-review or independently review this API/service implementation for P0-P4 issues, guard coverage, tests, performance risk, architecture balance, and operational risks."
+
