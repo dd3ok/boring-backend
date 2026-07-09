@@ -20,6 +20,18 @@ Design only what the current task needs to protect real invariants. A design is 
 5. State tradeoffs and assumptions that can change P0/P1/P2 outcomes. Omit generic best-practice prose.
 6. Hand off to implementation with concrete acceptance criteria.
 
+## Concurrency Strategy Choice
+
+Before strategy choice, define boundary semantics: half-open `[start, end)` ranges and invalid-transition status.
+
+| Signal | Prefer |
+|---|---|
+| DB can express the invariant | Native constraint; map violation to conflict |
+| One aggregate row owns it | Transaction plus row lock, or atomic conditional update |
+| Low contention with version field | Optimistic version plus bounded retry or conflict |
+| Cross-row/range without native constraint | Serializable plus bounded retry; name DB limits |
+| In-memory or process lock | Local-only; no distributed safety claim |
+
 ## Read References
 
 Read only applicable files:
