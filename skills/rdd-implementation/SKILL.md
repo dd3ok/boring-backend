@@ -30,10 +30,13 @@ Read only applicable files:
 | File | Trigger |
 |---|---|
 | `references/guard-catalog.md` | core state, idempotency, concurrency, pagination, data integrity, status codes |
+| `references/data-lifecycle-guard-catalog.md` | schema constraints, migrations, backfills, transaction isolation/locking, replication lag, retention/deletion, audit, backup/restore, critical persistent data |
 | `references/security-guard-catalog.md` | auth, roles, ownership, public input, secrets, logs, CORS/TLS, user-controlled URLs, third-party responses |
 | `references/performance-guard-catalog.md` | latency, throughput, high traffic, list/search/export/bulk, DB performance, N+1, indexes, pools, payload, caching |
 | `references/resilience-guard-catalog.md` | external calls, retries, timeouts, locks, transactions, queues/events, quotas, throttling, backpressure, distributed/MSA behavior |
-| `references/operations-guard-catalog.md` | production readiness, architecture evaluation, deployment/migration, observability, SLOs, compatibility, backup/restore, supply chain, cost/resource risk |
+| `references/operations-guard-catalog.md` | production readiness, launch/deployment/rollback, migration rollout, observability, SLOs, incident readiness, supply chain, cost/resource risk |
+| `references/evidence-strength.md` | required evidence level, confidence grading, local-only gaps, production-readiness claims |
+| `references/compatibility-governance-guard-catalog.md` | API/schema/SDK compatibility, versioning, deprecation, request/response fields, enums, status codes, pagination/filtering/sorting, idempotency semantics |
 | `references/forward-test-prompts.md` | maintaining or evaluating this skill |
 
 ## Architecture Defaults

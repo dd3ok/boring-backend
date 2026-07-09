@@ -35,7 +35,7 @@ Ask for evidence, not intent:
 | P0 | Cannot build, run, import, or collect tests |
 | P1 | Security or data integrity failure |
 | P2 | API contract or status-code failure |
-| P3 | Maintainability, package structure, or undue complexity |
+| P3 | Maintainability, package structure, performance/ops risk, or undue complexity |
 | P4 | Naming, style, verbosity, token cost, or report quality |
 
 Rank P0/P1/P2 ahead of architecture preference. Token cost is a tie-breaker, not correctness evidence.
