@@ -14,7 +14,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ("boring-backend",)
 SOURCE_ROOT = ROOT / "skills"
 MIRROR_ROOTS = (ROOT / ".agents" / "skills", ROOT / ".claude" / "skills")
-STALE_PATTERNS = ("guarded-pragmatic", "Guarded Pragmatic")
+STALE_PATTERNS = (
+    "guarded-pragmatic",
+    "Guarded Pragmatic",
+    "Boring Backend-design",
+    "Boring Backend-implementation",
+    "Boring Backend-review",
+    "boring-backend skills",
+    "an boring-backend",
+    "an Boring Backend",
+)
 
 
 def sha256(path: Path) -> str:
@@ -200,7 +209,7 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         if "core-guard-routing.md" not in skill_text:
             fail(f"missing core-guard-routing.md route in {display_path(skill_md)}", issues)
 
-    guard_catalog = base / "references" / "guard-catalog.md"
+    guard_catalog = base / "references" / "core-guard-catalog.md"
     if guard_catalog.exists():
         guard_text = guard_catalog.read_text(encoding="utf-8")
         corpus_parts.append(guard_text)
@@ -210,17 +219,17 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         if "first-run experiments" not in guard_lower or "pre-register" not in guard_lower:
             fail(f"guard fairness wording missing in {display_path(guard_catalog)}", issues)
 
-    evidence_strength = base / "references" / "evidence-strength.md"
-    if evidence_strength.exists():
-        evidence_text = evidence_strength.read_text(encoding="utf-8")
-        corpus_parts.append(evidence_text)
+    core_routing = base / "references" / "core-guard-routing.md"
+    if core_routing.exists():
+        routing_text = core_routing.read_text(encoding="utf-8")
+        corpus_parts.append(routing_text)
+        if "core-guard-catalog.md" not in routing_text:
+            fail(f"core routing must point to core-guard-catalog.md in {display_path(core_routing)}", issues)
         for label in ("L0 Static", "L1 Unit/domain", "L2 Integration", "L3 Risk-specific", "L4 Production-readiness"):
-            if label not in evidence_text:
-                fail(f"missing evidence level {label!r} in {display_path(evidence_strength)}", issues)
+            if label not in routing_text:
+                fail(f"missing evidence level {label!r} in {display_path(core_routing)}", issues)
 
-    learning_prompt_found = False
     if references.exists():
-        core_routing = references / "core-guard-routing.md"
         if not core_routing.exists():
             fail(f"missing {display_path(core_routing)}", issues)
         for ref_file in references.glob("*.md"):
@@ -229,13 +238,11 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             if "Learning Feedback Lens" in ref_text:
                 fail(f"runtime catalog contains Learning Feedback Lens in {display_path(ref_file)}", issues)
             if "Learning Feedback Prompt" in ref_text:
-                if ref_file.name != "forward-test-prompts.md":
-                    fail(f"Learning Feedback Prompt belongs in forward-test-prompts.md: {display_path(ref_file)}", issues)
-                else:
-                    learning_prompt_found = True
+                fail(f"Learning Feedback Prompt must not be in runtime references: {display_path(ref_file)}", issues)
 
-    if not learning_prompt_found:
-        fail(f"missing Learning Feedback Prompt in {display_path(base / 'references' / 'forward-test-prompts.md')}", issues)
+    runtime_forward = base / "references" / "forward-test-prompts.md"
+    if runtime_forward.exists():
+        fail(f"forward-test-prompts.md belongs outside runtime references: {display_path(runtime_forward)}", issues)
 
     corpus = "\n".join(corpus_parts)
     if "production-evidence run" not in corpus:

@@ -16,13 +16,13 @@ No source files were edited. No build, typecheck, test, static guard, or API smo
 
 ## References Used
 
-- `skills/Boring Backend-review/SKILL.md`: review order, P0-P4 severity definitions, review-only behavior, and report shape.
-- `skills/Boring Backend-review/references/guard-catalog.md`: idempotency, concurrent read-then-write, stock/count invariants, pagination, error mapping, and local-only assumption checks.
-- `skills/Boring Backend-review/references/security-guard-catalog.md`: object/function authorization and fail-closed auth checks for state transitions accepting user-controlled IDs.
-- `skills/Boring Backend-review/references/performance-guard-catalog.md`: list endpoint bounds, payload size, query path, and resource saturation checks.
-- `skills/Boring Backend-review/references/resilience-guard-catalog.md`: transaction/lock safety, retry/idempotency interaction, and local-vs-distributed safety checks.
-- `skills/Boring Backend-review/references/operations-guard-catalog.md`: production-readiness evidence, observability, SLO, backup/restore, compatibility, and resource-risk checks.
-- `skills/Boring Backend-review/references/forward-test-prompts.md`: expected pass signal for an Boring Backend review of the generated order API.
+- `skills/boring-backend/SKILL.md`: review order, P0-P4 severity definitions, review-only behavior, and report shape.
+- `skills/boring-backend/references/core-guard-catalog.md`: idempotency, concurrent read-then-write, stock/count invariants, pagination, error mapping, and local-only assumption checks.
+- `skills/boring-backend/references/security-guard-catalog.md`: object/function authorization and fail-closed auth checks for state transitions accepting user-controlled IDs.
+- `skills/boring-backend/references/performance-guard-catalog.md`: list endpoint bounds, payload size, query path, and resource saturation checks.
+- `skills/boring-backend/references/resilience-guard-catalog.md`: transaction/lock safety, retry/idempotency interaction, and local-vs-distributed safety checks.
+- `skills/boring-backend/references/operations-guard-catalog.md`: production-readiness evidence, observability, SLO, rollout/rollback, incident readiness, supply chain, and cost/resource risk checks.
+- `validation/forward-test-prompts.md`: expected pass signal for a Boring Backend review of the generated order API.
 
 ## Verdict
 

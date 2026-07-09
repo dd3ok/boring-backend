@@ -64,12 +64,12 @@ Pass signal: operations and applicable guard catalogs are read; local test evide
 
 ## Learning Feedback Prompt
 
-Use only when maintaining the boring-backend skills after a production incident, escaped P1/P2 defect, rollback caused by a missed guard, or repeated review miss.
+Use only when maintaining Boring Backend after a production incident, escaped P1/P2 defect, rollback caused by a missed guard, or repeated review miss.
 
 Prompt:
 
 ```text
-Evaluate whether the missed failure should become an boring-backend guard. Record the missed invariant, the catalog that should own it, required evidence, and whether it is ready for a later clean run where every variant receives the same pre-registered guard.
+Evaluate whether the missed failure should become a Boring Backend guard. Record the missed invariant, the catalog that should own it, required evidence, and whether it is ready for a later clean run where every variant receives the same pre-registered guard.
 ```
 
 Pass signal: learning is recorded as a candidate guard or regression prompt, not as a first-run implementation hint.

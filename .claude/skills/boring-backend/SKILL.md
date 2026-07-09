@@ -32,20 +32,7 @@ Operational escalation: performance, cost, migration, observability, or release 
 
 ## References
 
-Read only applicable files:
-
-| File | Trigger |
-|---|---|
-| `references/core-guard-routing.md` | always read first to choose the smallest catalog set |
-| `references/guard-catalog.md` | core state, idempotency, concurrency, pagination, data integrity, status codes |
-| `references/data-lifecycle-guard-catalog.md` | schema constraints, migrations, backfills, isolation/locking, replication lag, retention/deletion, audit, backup/restore |
-| `references/security-guard-catalog.md` | auth, roles, ownership, public input, secrets, logs, CORS/TLS, user-controlled URLs, third-party responses |
-| `references/performance-guard-catalog.md` | latency, throughput, high traffic, list/search/export/bulk, DB performance, N+1, indexes, pools, payload, caching |
-| `references/resilience-guard-catalog.md` | external calls, retries, timeouts, locks, transactions, queues/events, quotas, throttling, backpressure, distributed/MSA behavior |
-| `references/operations-guard-catalog.md` | production readiness, deployment/rollback, migration rollout, observability, SLOs, incident readiness, supply chain, cost/resource risk |
-| `references/evidence-strength.md` | evidence level, confidence grading, local-only gaps, production-readiness claims |
-| `references/compatibility-governance-guard-catalog.md` | API/schema/SDK compatibility, versioning, deprecation, request/response fields, enums, status codes, pagination/filtering/sorting, idempotency semantics |
-| `references/forward-test-prompts.md` | maintaining or evaluating this skill |
+Read `references/core-guard-routing.md` first. It chooses the smallest applicable catalog set and defines evidence levels, production-evidence triggers, and token reporting. Do not load other catalogs unless routed there.
 
 ## Mode Details
 
@@ -55,7 +42,7 @@ Implementation output: changed files, guard evidence, commands/results, architec
 
 Review output: verdict/confidence, P0-P4 findings or gaps, guard status, commands/results, architecture notes, remaining gaps, and fixes only when allowed.
 
-For token telemetry, split `total_tokens`, `input_tokens`, `cached_input_tokens`, `noncached_input_tokens`, `output_tokens`, and `reasoning_output_tokens`.
+For token telemetry, follow `references/core-guard-routing.md#token-reporting`.
 
 ## Handoff
 

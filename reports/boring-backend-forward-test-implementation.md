@@ -6,13 +6,13 @@ Pass for the requested small, local Python module. Confidence is high for the st
 
 ## Skill Used
 
-Used `C:\Users\hwick\Documents\dev\agent-lab\skills\Boring Backend-implementation` with the applicable core guard, resilience guard, and forward-test prompt references.
+Used `C:\Users\hwick\Documents\dev\agent-lab\skills\boring-backend` with the applicable core guard, resilience guard, and forward-test prompt references.
 
 ## Changed Files
 
-- `reports/Boring Backend-forward-test-implementation/reservation_service.py`
-- `reports/Boring Backend-forward-test-implementation/test_reservation_service.py`
-- `reports/Boring Backend-forward-test-implementation.md`
+- `reports/boring-backend-forward-test-implementation/reservation_service.py`
+- `reports/boring-backend-forward-test-implementation/test_reservation_service.py`
+- `reports/boring-backend-forward-test-implementation.md`
 
 ## Implemented Behavior
 

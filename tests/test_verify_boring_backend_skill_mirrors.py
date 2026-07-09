@@ -35,8 +35,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                     "",
                     "Operational escalation: performance, cost, migration, observability, or release risk escalates.",
                     "Read `references/core-guard-routing.md`.",
-                    "Read `references/guard-catalog.md`.",
-                    "Read `references/forward-test-prompts.md`.",
+                    "Read `references/core-guard-catalog.md`.",
                     "Use a production-evidence run only when L4 evidence is requested.",
                     "Report `noncached_input_tokens` when token telemetry exists.",
                     "Write `reports/handoffs/<task>-first-handoff.json` for multi-phase runs.",
@@ -58,7 +57,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (references / "guard-catalog.md").write_text(
+        (references / "core-guard-catalog.md").write_text(
             "\n".join(
                 [
                     "# Guard",
@@ -78,15 +77,17 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                 [
                     "# Core Guard Routing",
                     "",
+                    "Read `core-guard-catalog.md` for core behavior.",
                     "Use a production-evidence run only when production-ready evidence is requested.",
                     "Report `noncached_input_tokens` separately when telemetry exists.",
+                    "L0 Static",
+                    "L1 Unit/domain",
+                    "L2 Integration",
+                    "L3 Risk-specific",
+                    "L4 Production-readiness",
                     "",
                 ]
             ),
-            encoding="utf-8",
-        )
-        (references / "forward-test-prompts.md").write_text(
-            "# Forward\n\n## Learning Feedback Prompt\n\nUse only during skill maintenance.\n",
             encoding="utf-8",
         )
 
@@ -350,7 +351,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             self.assertTrue(any("reference exceeds 100 lines" in issue for issue in issues))
             self.assertTrue(any("nested markdown reference" in issue for issue in issues))
 
-    def test_learning_feedback_prompt_must_stay_in_forward_test_prompts(self):
+    def test_learning_feedback_prompt_must_stay_out_of_runtime_references(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
@@ -366,7 +367,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
             self.assertTrue(any("Learning Feedback Prompt" in issue for issue in issues))
 
-    def test_boring_backend_semantics_require_operational_escalation_evidence_levels_and_learning_prompt(self):
+    def test_boring_backend_semantics_require_operational_escalation_evidence_levels_and_no_learning_prompt(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
@@ -375,20 +376,16 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                 (base / "SKILL.md").read_text(encoding="utf-8").replace("Operational escalation:", "Ops escalation:"),
                 encoding="utf-8",
             )
-            (base / "references" / "evidence-strength.md").write_text("L0 Static\n", encoding="utf-8")
             (base / "references" / "operations-guard-catalog.md").write_text(
                 "## Learning Feedback Lens\n",
                 encoding="utf-8",
             )
-            (base / "references" / "forward-test-prompts.md").write_text("# Forward\n", encoding="utf-8")
 
             issues: list[str] = []
             module.validate_boring_backend_semantics(base, issues)
 
             self.assertTrue(any("operational escalation" in issue for issue in issues))
-            self.assertTrue(any("L1 Unit/domain" in issue for issue in issues))
             self.assertTrue(any("Learning Feedback Lens" in issue for issue in issues))
-            self.assertTrue(any("missing Learning Feedback Prompt" in issue for issue in issues))
 
     def test_boring_backend_semantics_require_routing_handoff_l4_and_token_guidance(self):
         module = load_module()
@@ -404,7 +401,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                         "description: Use when validating boring-backend verifier fixtures.",
                         "---",
                         "",
-                        "Read `references/guard-catalog.md`.",
+                        "Read `references/core-guard-catalog.md`.",
                         "",
                     ]
                 ),
@@ -446,10 +443,10 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             (base / "SKILL.md").write_text(
                 (base / "SKILL.md").read_text(encoding="utf-8")
                 + "\nRead `references/operations-guard-catalog.md` for compatibility and backup/restore.\n"
-                + "Stale guarded-pragmatic text.\n",
+                + "Stale Boring Backend-review text.\n",
                 encoding="utf-8",
             )
-            (base / "references" / "guard-catalog.md").write_text(
+            (base / "references" / "core-guard-catalog.md").write_text(
                 "| P3 | Maintainability, package structure, or undue complexity |\n",
                 encoding="utf-8",
             )
@@ -460,7 +457,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             self.assertTrue(any("stale pattern" in issue for issue in issues))
             self.assertTrue(any("operations route overlaps" in issue for issue in issues))
             self.assertTrue(any("core P3 severity" in issue for issue in issues))
-            self.assertTrue(any("guarded-pragmatic" in issue or "Guarded Pragmatic" in issue for issue in issues))
+            self.assertTrue(any("Boring Backend-review" in issue for issue in issues))
 
     def test_main_passes_against_temp_repo_with_synced_mirrors(self):
         module = load_module()
@@ -490,6 +487,8 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
 
 
 

@@ -4,8 +4,8 @@ Read this file first. Load only catalogs that can change implementation, evidenc
 
 ## Default
 
-- API, state, idempotency, concurrency, pagination, data integrity, or status codes: read `guard-catalog.md`.
-- Evidence level, confidence, or production-readiness claims: read `evidence-strength.md`.
+- API, state, idempotency, concurrency, pagination, data integrity, or status codes: read `core-guard-catalog.md`.
+- Compatibility catalog owns externally visible contract evolution. Core catalog owns current endpoint behavior.
 
 ## Conditional Catalogs
 
@@ -23,6 +23,18 @@ Read this file first. Load only catalogs that can change implementation, evidenc
 Use a production-evidence run only for explicit production-ready, actual DB, query plan, load test, p95/p99, saturation, observability, SLO, rollout, or rollback requests.
 
 Without that trigger, implement or review L2/L3 guards and name L4 gaps. Do not turn ordinary CRUD work into load testing.
+
+## Evidence Levels
+
+Use the lowest evidence level that proves the relevant guard. Missing runnable evidence downgrades confidence and becomes a finding when a required guard or production-readiness claim depends on it.
+
+| Level | Evidence | Proves |
+|---|---|---|
+| L0 Static | lint, typecheck, compile, import, test collection | artifact is loadable enough to inspect or test |
+| L1 Unit/domain | validation, error mapping, state transition unit tests | isolated local behavior |
+| L2 Integration | real DB/repository/API smoke/framework wiring tests | components work together in the target stack |
+| L3 Risk-specific | concurrency, idempotency replay, authz bypass, migration compatibility, contract, duplicate event tests | named P1/P2 guard holds under its failure mode |
+| L4 Production-readiness | load test, query plan, canary metric, SLO dashboard, restore drill, rollback rehearsal, failure injection | operational behavior is evidenced, not inferred |
 
 ## Token Reporting
 

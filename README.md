@@ -21,6 +21,7 @@ The intended advantage is one clear trigger with internal modes for design, impl
 - `skills/boring-backend/`: source skill package.
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
+- `validation/`: maintenance-only forward-test prompts; not part of the runtime skill.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
 - `reports/`: forward-test reports and a tiny runnable implementation test artifact.
 
@@ -34,7 +35,15 @@ With Codex `skill-installer`, install only the runtime skill folder:
 
 Manual install is also path-only: copy `skills/boring-backend` into your runtime's skills directory.
 
-Do not install `.agents/`, `.claude/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, test artifacts, and verification utilities.
+Common local targets:
+
+| Runtime | Project scope | User scope |
+|---|---|---|
+| Codex / Agents | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
+| Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
+| Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
+
+Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, maintenance prompts, test artifacts, and verification utilities.
 
 ## Verification
 

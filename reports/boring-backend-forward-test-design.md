@@ -2,13 +2,13 @@
 
 ## Skill And References Used
 
-- Skill: `C:\Users\hwick\Documents\dev\agent-lab\skills\Boring Backend-design\SKILL.md`
+- Skill: `C:\Users\hwick\Documents\dev\agent-lab\skills\boring-backend\SKILL.md`
 - References:
-  - `skills/Boring Backend-design/references/guard-catalog.md`
-  - `skills/Boring Backend-design/references/security-guard-catalog.md`
-  - `skills/Boring Backend-design/references/performance-guard-catalog.md`
-  - `skills/Boring Backend-design/references/resilience-guard-catalog.md`
-  - `skills/Boring Backend-design/references/forward-test-prompts.md`
+  - `skills/boring-backend/references/core-guard-catalog.md`
+  - `skills/boring-backend/references/security-guard-catalog.md`
+  - `skills/boring-backend/references/performance-guard-catalog.md`
+  - `skills/boring-backend/references/resilience-guard-catalog.md`
+  - `validation/forward-test-prompts.md`
 
 ## Skill Evaluation
 
@@ -16,7 +16,7 @@ The skill was clear for this task. It pushed the design toward contract, P0/P1/P
 
 Missing or weaker guidance:
 
-- The design skill does not give a concrete template for choosing among database-native exclusion constraints, pessimistic row locks, optimistic versions, or serializable retries when several could satisfy the same invariant.
+- Design mode guidance does not give a concrete template for choosing among database-native exclusion constraints, pessimistic row locks, optimistic versions, or serializable retries when several could satisfy the same invariant.
 - It names security boundaries but does not say how much unauthenticated single-tenant API design is acceptable before requiring auth in the contract.
 - It does not explicitly ask the designer to define time-range boundary semantics, such as whether a reservation ending at 11:00 conflicts with one starting at 11:00. That matters for overlap correctness.
 
