@@ -31,6 +31,7 @@ The skill uses one trigger with four internal modes:
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
 - `validation/`: maintenance-only forward-test prompts; not part of the runtime skill.
+- `scripts/verify_all.py`: runs mirror, repository, and forward-test implementation checks.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
 - `reports/`: forward-test reports and a tiny runnable implementation test artifact.
 
@@ -38,7 +39,7 @@ The skill uses one trigger with four internal modes:
 
 With Codex `skill-installer`, install only the runtime skill folder:
 
-```powershell
+```text
 --repo dd3ok/boring-backend --path skills/boring-backend
 ```
 
@@ -56,8 +57,18 @@ Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` 
 
 ## Verification
 
-```powershell
-python .\scripts\verify_boring_backend_skill_mirrors.py
-python -m unittest discover -s .\tests
-$env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\boring-backend-forward-test-implementation -p 'test_*.py'
+Install the development dependency in a project-local Python 3 virtual environment:
+
+```text
+python -m pip install -r requirements-dev.txt
 ```
+
+Then run the verification entrypoint from the repository root with the active environment or the platform's Python 3 launcher:
+
+```text
+python scripts/verify_all.py
+python3 scripts/verify_all.py  # macOS/Linux
+py -3 scripts/verify_all.py    # Windows
+```
+
+GitHub Actions runs the same entrypoint on Ubuntu, macOS, and Windows.

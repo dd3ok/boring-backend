@@ -202,32 +202,174 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         skill_text = skill_md.read_text(encoding="utf-8")
         corpus_parts.append(skill_text)
         for line in skill_text.splitlines():
-            if "operations-guard-catalog.md" in line and re.search(r"\bcompatibility\b|backup/restore", line):
+            if "operations-guard-catalog.md" in line and re.search(
+                r"\bfor\b.*(?:\bcompatibility\b|backup/restore)", line
+            ):
                 fail(f"operations route overlaps dedicated catalogs in {display_path(skill_md)}", issues)
         if "Operational escalation:" not in skill_text:
             fail(f"missing operational escalation rule in {display_path(skill_md)}", issues)
         if "core-guard-routing.md" not in skill_text:
             fail(f"missing core-guard-routing.md route in {display_path(skill_md)}", issues)
+        if "experiment-reporting.md" not in skill_text:
+            fail(f"missing experiment-reporting.md route in {display_path(skill_md)}", issues)
+        if "subagent-delegation.md" not in skill_text:
+            fail(f"missing subagent-delegation.md route in {display_path(skill_md)}", issues)
+        if "token-reporting.md" not in skill_text:
+            fail(f"missing token-reporting.md route in {display_path(skill_md)}", issues)
+        subagent_route = any(
+            "subagent-delegation.md" in line and "subagent" in line.lower() and "delegat" in line.lower()
+            for line in skill_text.splitlines()
+        )
+        if not subagent_route:
+            fail(f"missing ordinary subagent route to subagent-delegation.md in {display_path(skill_md)}", issues)
+        if any("experiment-reporting.md" in line and "subagent" in line.lower() for line in skill_text.splitlines()):
+            fail(f"ordinary subagents need a separate subagent delegation reference in {display_path(skill_md)}", issues)
+        if "reports/handoffs/" in skill_text or "handoff-first" in skill_text:
+            fail(f"handoff detail belongs in references/experiment-reporting.md, not {display_path(skill_md)}", issues)
 
     guard_catalog = base / "references" / "core-guard-catalog.md"
     if guard_catalog.exists():
         guard_text = guard_catalog.read_text(encoding="utf-8")
-        corpus_parts.append(guard_text)
         if "| P3 | Maintainability, package structure, performance/ops risk, or undue complexity |" not in guard_text:
             fail(f"core P3 severity lacks performance/ops risk in {display_path(guard_catalog)}", issues)
         guard_lower = guard_text.lower()
-        if "first-run experiments" not in guard_lower or "pre-register" not in guard_lower:
-            fail(f"guard fairness wording missing in {display_path(guard_catalog)}", issues)
+        if "first-run experiments" in guard_lower or "pre-register" in guard_lower:
+            fail(f"experiment fairness belongs in experiment-reporting.md, not {display_path(guard_catalog)}", issues)
 
     core_routing = base / "references" / "core-guard-routing.md"
     if core_routing.exists():
         routing_text = core_routing.read_text(encoding="utf-8")
-        corpus_parts.append(routing_text)
         if "core-guard-catalog.md" not in routing_text:
             fail(f"core routing must point to core-guard-catalog.md in {display_path(core_routing)}", issues)
+        if "catalog_route" not in routing_text:
+            fail(f"missing catalog_route guidance in {display_path(core_routing)}", issues)
+        routing_lower = routing_text.lower()
+        security_route_terms = (
+            "security-guard-catalog.md",
+            "field binding",
+            "cors/tls",
+            "third-party responses",
+        )
+        missing_security_terms = [term for term in security_route_terms if term not in routing_lower]
+        if missing_security_terms:
+            fail(
+                f"missing security route coverage {missing_security_terms!r} in {display_path(core_routing)}",
+                issues,
+            )
         for label in ("L0 Static", "L1 Unit/domain", "L2 Integration", "L3 Risk-specific", "L4 Production-readiness"):
             if label not in routing_text:
                 fail(f"missing evidence level {label!r} in {display_path(core_routing)}", issues)
+        if "## Token Reporting" in routing_text:
+            fail(f"conditional token reporting belongs in token-reporting.md, not {display_path(core_routing)}", issues)
+
+    experiment_reporting = base / "references" / "experiment-reporting.md"
+    if experiment_reporting.exists():
+        reporting_text = experiment_reporting.read_text(encoding="utf-8")
+        reporting_lower = reporting_text.lower()
+        required_groups = {
+            "handoff index": ("handoff index", "reports/handoffs/"),
+            "handoff fields": (
+                "claim_id",
+                "claim_summary",
+                "file:line",
+                "evidence_path",
+                "command_exit",
+                "known_gap",
+                "token_usage",
+            ),
+            "handoff-first fallback": (
+                "handoff-first",
+                "full first report",
+                "cannot be resolved",
+                "handoff index",
+                "cited evidence",
+            ),
+            "delta output": ("delta", "claim_id"),
+            "experiment fairness": ("first-run experiments", "postmortem traps", "pre-register", "variant"),
+        }
+        for group, terms in required_groups.items():
+            missing = [term for term in terms if term not in reporting_lower]
+            if missing:
+                fail(
+                    f"missing experiment reporting {group}: {missing!r} in {display_path(experiment_reporting)}",
+                    issues,
+                )
+        fallback_lines = [line for line in reporting_lower.splitlines() if "full first report" in line]
+        if not any(
+            "only for" in line
+            and "p0-p2" in line
+            and "cannot be resolved" in line
+            and "handoff index" in line
+            and "cited evidence" in line
+            for line in fallback_lines
+        ):
+            fail(
+                f"missing P0-P2-only full-report fallback in {display_path(experiment_reporting)}",
+                issues,
+            )
+        if "p0-p2-relevant" in reporting_lower:
+            fail(
+                f"evidence-gated handoff fallback must not open the full report for severity alone in {display_path(experiment_reporting)}",
+                issues,
+            )
+        if "subagent prompt boundary" in reporting_lower or (
+            "subagent" in reporting_lower and "allowed catalogs" in reporting_lower
+        ):
+            fail(
+                f"subagent prompt boundaries belong in subagent-delegation.md, not {display_path(experiment_reporting)}",
+                issues,
+            )
+    else:
+        fail(f"missing {display_path(experiment_reporting)}", issues)
+
+    subagent_delegation = base / "references" / "subagent-delegation.md"
+    if subagent_delegation.exists():
+        subagent_text = subagent_delegation.read_text(encoding="utf-8")
+        subagent_lower = subagent_text.lower()
+        required_terms = (
+            "user request",
+            "mode",
+            "handoff",
+            "changed-file paths",
+            "allowed catalogs",
+            "required evidence commands",
+            "prior reports",
+            "transcripts",
+            "catalog text",
+            "token_usage",
+        )
+        missing = [term for term in required_terms if term not in subagent_lower]
+        if missing:
+            fail(
+                f"missing subagent delegation boundaries {missing!r} in {display_path(subagent_delegation)}",
+                issues,
+            )
+        if len(subagent_text.split()) > 70:
+            fail(f"subagent delegation reference exceeds 70 words: {display_path(subagent_delegation)}", issues)
+    else:
+        fail(f"missing {display_path(subagent_delegation)}", issues)
+
+    token_reporting = base / "references" / "token-reporting.md"
+    if token_reporting.exists():
+        token_text = token_reporting.read_text(encoding="utf-8")
+        token_lower = token_text.lower()
+        required_terms = (
+            "total_tokens",
+            "input_tokens",
+            "cached_input_tokens",
+            "cache_write_tokens",
+            "noncached_input_tokens = input - cached",
+            "output_tokens",
+            "reasoning_output_tokens",
+            "do not add",
+        )
+        missing = [term for term in required_terms if term not in token_lower]
+        if missing:
+            fail(f"missing token reporting guidance {missing!r} in {display_path(token_reporting)}", issues)
+        if len(token_text.split()) > 70:
+            fail(f"token reporting reference exceeds 70 words: {display_path(token_reporting)}", issues)
+    else:
+        fail(f"missing {display_path(token_reporting)}", issues)
 
     if references.exists():
         if not core_routing.exists():
@@ -235,6 +377,9 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         for ref_file in references.glob("*.md"):
             ref_text = ref_file.read_text(encoding="utf-8")
             corpus_parts.append(ref_text)
+            direct_ref = f"references/{ref_file.name}"
+            if skill_md.exists() and direct_ref not in skill_text:
+                fail(f"reference must be linked directly from {display_path(skill_md)}: {direct_ref}", issues)
             if "Learning Feedback Lens" in ref_text:
                 fail(f"runtime catalog contains Learning Feedback Lens in {display_path(ref_file)}", issues)
             if "Learning Feedback Prompt" in ref_text:
@@ -249,6 +394,8 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         fail(f"missing production-evidence run guidance in {display_path(base)}", issues)
     if "noncached_input_tokens" not in corpus:
         fail(f"missing noncached_input_tokens token reporting guidance in {display_path(base)}", issues)
+    if "cache_write_tokens" not in corpus:
+        fail(f"missing cache_write_tokens token reporting guidance in {display_path(base)}", issues)
     if "reports/handoffs/" not in corpus:
         fail(f"missing implementation handoff guidance in {display_path(base)}", issues)
     if "handoff-first" not in corpus:
@@ -317,5 +464,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
 
