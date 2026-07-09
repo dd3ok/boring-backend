@@ -1,0 +1,5 @@
+interface:
+  display_name: "Boring Backend"
+  short_description: "Reliability guardrails for API/service work."
+  default_prompt: "Use $boring-backend to design, implement, or review this API/service change."
+

@@ -1,49 +1,45 @@
-# RDD Skills
+# Boring Backend Skill
 
-RDD means Reliability-Driven Design: a three-stage skill workflow for AI coding agents.
+Boring Backend is a compact skill for AI coding agents that design, implement, or review API/service reliability work.
 
 ## Design Bias
 
-RDD Skills are built for AI coding agents that can over-design, miss edge cases, or overstate confidence. The workflow intentionally blends:
+Boring Backend is built for AI coding agents that can over-design, miss edge cases, or overstate confidence. It intentionally blends:
 
 - Test-aware problem framing: start from failure modes, not happy paths. Every guard should end in runnable evidence when possible. Static review and checklists help, but missing tests or smoke runs lower confidence.
-- Andrej Karpathy-inspired agent hygiene: keep changes surgical, name assumptions, choose the smallest working path, and define success in commands the agent can run.
+- Agent hygiene: keep changes surgical, name assumptions, choose the smallest working path, and define success in commands the agent can run.
 - SOLID + YAGNI balance: separate real responsibilities such as routing, domain rules, persistence, DTOs, and error mapping only when the current contract needs it. Avoid interfaces, factories, strategies, or plugin layers for future variants.
 
-The intended advantage is a compact design -> implementation -> review loop that protects correctness, security, data integrity, status codes, and operational guardrails without turning a small service task into architecture ceremony.
+The intended advantage is one clear trigger with internal modes for design, implementation, review, and production-evidence runs. That keeps discovery simple while still protecting correctness, security, data integrity, status codes, performance, and operational guardrails.
 
-## Skills
+## Skill
 
-- `rdd-design`: design API/service reliability contracts before implementation.
-- `rdd-implementation`: implement the smallest guarded solution with tests and named assumptions.
-- `rdd-review`: review API/service code for P0-P4 reliability gaps with evidence.
+- `boring-backend`: design, implement, or review API/service reliability for auth, data integrity, idempotency, concurrency, performance, distributed behavior, and operational risk.
 
 ## Layout
 
-- `skills/`: source skill packages.
-- `.agents/skills/`: project-local Codex/Antigravity-style mirrors.
-- `.claude/skills/`: project-local Claude Code mirrors.
-- `scripts/verify_rdd_skill_mirrors.py`: verifies source and mirror packages stay in sync.
+- `skills/boring-backend/`: source skill package.
+- `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
+- `.claude/skills/boring-backend/`: project-local Claude Code mirror.
+- `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
 - `reports/`: forward-test reports and a tiny runnable implementation test artifact.
-
-Each RDD skill bundles its own `references/` directory so a single skill folder can be copied or installed without broken cross-skill links.
 
 ## Install
 
-Install only the skill folders, not the repository root. With Codex `skill-installer`, use these arguments:
+With Codex `skill-installer`, install only the runtime skill folder:
 
 ```powershell
---repo dd3ok/rdd-skills --path skills/rdd-design skills/rdd-implementation skills/rdd-review
+--repo dd3ok/boring-backend --path skills/boring-backend
 ```
 
-Manual install is also path-only: copy `skills/rdd-design`, `skills/rdd-implementation`, and `skills/rdd-review` into your runtime's skills directory.
+Manual install is also path-only: copy `skills/boring-backend` into your runtime's skills directory.
 
 Do not install `.agents/`, `.claude/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, test artifacts, and verification utilities.
 
 ## Verification
 
 ```powershell
-python .\scripts\verify_rdd_skill_mirrors.py
+python .\scripts\verify_boring_backend_skill_mirrors.py
 python -m unittest discover -s .\tests
-$env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\rdd-forward-test-implementation -p 'test_*.py'
+$env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\boring-backend-forward-test-implementation -p 'test_*.py'
 ```

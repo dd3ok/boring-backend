@@ -1,4 +1,0 @@
-interface:
-  display_name: "RDD Implementation"
-  short_description: "Implement API/service code with guards."
-  default_prompt: "Use $rdd-implementation to implement this API/service change with focused guards, tests, and named assumptions."

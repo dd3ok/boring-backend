@@ -1,4 +1,0 @@
-interface:
-  display_name: "RDD Design"
-  short_description: "Design reliability contracts before code."
-  default_prompt: "Use $rdd-design to define the reliability contract, risk map, minimal architecture, and guard evidence before implementation."
