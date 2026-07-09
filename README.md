@@ -1,5 +1,7 @@
 # Boring Backend Skill
 
+[한국어](README.ko.md)
+
 Boring Backend is a compact skill for AI coding agents that design, implement, or review API/service reliability work.
 
 ## Design Bias
@@ -15,6 +17,13 @@ The intended advantage is one clear trigger with internal modes for design, impl
 ## Skill
 
 - `boring-backend`: design, implement, or review API/service reliability for auth, data integrity, idempotency, concurrency, performance, distributed behavior, and operational risk.
+
+The skill uses one trigger with four internal modes:
+
+- Design: define contracts, invariants, guard strategy, tradeoffs, and evidence targets before implementation.
+- Implementation: make scoped API/service changes with tests and guard evidence.
+- Review: check code for P0-P4 reliability, security, data integrity, performance, compatibility, and operations risks.
+- Production evidence: separate local evidence from load, query-plan, latency, saturation, rollout, rollback, and observability evidence.
 
 ## Layout
 
