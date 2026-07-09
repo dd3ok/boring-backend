@@ -19,6 +19,7 @@ In review-only mode, report without editing. In fix mode, patch only necessary c
    - P2: API contract or status-code failure.
    - P3: maintainability, package structure, performance risk, or undue complexity.
    - P4: naming, style, verbosity, token cost, or report quality.
+   Operational escalation: performance, cost, migration, observability, or release risk is P1 when it can cause data loss/corruption, security/privacy exposure, availability/SLO breach, unbounded spend, or irreversible rollout. It is P2 when it can cause client-breaking contract drift or status/API compatibility failure.
 4. If review-only, stop at findings and evidence.
 5. If fixing is allowed, fix P0/P1/P2 first. Fix P3 only when narrow and risk-reducing. Leave P4 unless requested or essentially free.
 6. Rerun relevant verification after each material fix.
@@ -30,10 +31,13 @@ Read only applicable files:
 | File | Trigger |
 |---|---|
 | `references/guard-catalog.md` | core state, idempotency, concurrency, pagination, data integrity, status codes |
+| `references/data-lifecycle-guard-catalog.md` | schema constraints, migrations, backfills, transaction isolation/locking, replication lag, retention/deletion, audit, backup/restore, critical persistent data |
 | `references/security-guard-catalog.md` | auth, roles, ownership, public input, secrets, logs, CORS/TLS, user-controlled URLs, third-party responses |
 | `references/performance-guard-catalog.md` | latency, throughput, high traffic, list/search/export/bulk, DB performance, N+1, indexes, pools, payload, caching |
 | `references/resilience-guard-catalog.md` | external calls, retries, timeouts, locks, transactions, queues/events, quotas, throttling, backpressure, distributed/MSA behavior |
-| `references/operations-guard-catalog.md` | production readiness, architecture evaluation, deployment/migration, observability, SLOs, compatibility, backup/restore, supply chain, cost/resource risk |
+| `references/operations-guard-catalog.md` | production readiness, launch/deployment/rollback, migration rollout, observability, SLOs, incident readiness, supply chain, cost/resource risk |
+| `references/evidence-strength.md` | required evidence level, confidence grading, local-only gaps, production-readiness claims |
+| `references/compatibility-governance-guard-catalog.md` | API/schema/SDK compatibility, versioning, deprecation, request/response fields, enums, status codes, pagination/filtering/sorting, idempotency semantics |
 | `references/forward-test-prompts.md` | maintaining or evaluating this skill |
 
 ## Architecture Review

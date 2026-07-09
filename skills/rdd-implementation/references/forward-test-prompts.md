@@ -60,7 +60,19 @@ Prompt:
 Use rdd-review to review this API before launch. Focus on production readiness, architecture, security, scalability, deployment, observability, and resource risk.
 ```
 
-Pass signal: operations and applicable guard catalogs are read; local test evidence is separated from production readiness; observability, compatibility, migration/rollback, backup/restore, supply chain, performance, and cost/resource risk are checked without outranking P0/P1/P2 failures.
+Pass signal: operations and applicable guard catalogs are read; local test evidence is separated from production readiness; observability, deployment/rollback, supply chain, performance, and cost/resource risk are checked; compatibility and backup/restore route to their dedicated catalogs when in scope.
+
+## Learning Feedback Prompt
+
+Use only when maintaining the RDD skills after a production incident, escaped P1/P2 defect, rollback caused by a missed guard, or repeated review miss.
+
+Prompt:
+
+```text
+Evaluate whether the missed failure should become an RDD guard. Record the missed invariant, the catalog that should own it, required evidence, and whether it is ready for a later clean run where every variant receives the same pre-registered guard.
+```
+
+Pass signal: learning is recorded as a candidate guard or regression prompt, not as a first-run implementation hint.
 
 ## Performance Review Trigger
 

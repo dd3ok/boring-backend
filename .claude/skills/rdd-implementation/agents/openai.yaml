@@ -1,5 +1,4 @@
 interface:
   display_name: "RDD Implementation"
-  short_description: "Implement verifiable API/service code with reliability guards."
-  default_prompt: "Use rdd-implementation to implement this API/service code with Reliability-Driven Design, balanced scope, architecture, tests, performance awareness, and operational risk checks."
-
+  short_description: "Implement API/service code with guards."
+  default_prompt: "Use $rdd-implementation to implement this API/service change with focused guards, tests, and named assumptions."

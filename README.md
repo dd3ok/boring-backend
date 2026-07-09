@@ -34,5 +34,6 @@ Do not install `.agents/`, `.claude/`, `reports/`, or `scripts/` as runtime skil
 
 ```powershell
 python .\scripts\verify_rdd_skill_mirrors.py
+python -m unittest discover -s .\tests
 $env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\rdd-forward-test-implementation -p 'test_*.py'
 ```
