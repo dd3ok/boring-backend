@@ -1,6 +1,16 @@
 # RDD Skills
 
-RDD means Reliability-Driven Design: a three-layer skill workflow for AI coding agents.
+RDD means Reliability-Driven Design: a three-stage skill workflow for AI coding agents.
+
+## Design Bias
+
+RDD Skills are built for AI coding agents that can over-design, miss edge cases, or overstate confidence. The workflow intentionally blends:
+
+- Test-aware problem framing: start from failure modes, not happy paths. Every guard should end in runnable evidence when possible. Static review and checklists help, but missing tests or smoke runs lower confidence.
+- Andrej Karpathy-inspired agent hygiene: keep changes surgical, name assumptions, choose the smallest working path, and define success in commands the agent can run.
+- SOLID + YAGNI balance: separate real responsibilities such as routing, domain rules, persistence, DTOs, and error mapping only when the current contract needs it. Avoid interfaces, factories, strategies, or plugin layers for future variants.
+
+The intended advantage is a compact design -> implementation -> review loop that protects correctness, security, data integrity, status codes, and operational guardrails without turning a small service task into architecture ceremony.
 
 ## Skills
 
