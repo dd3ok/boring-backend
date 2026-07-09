@@ -1,4 +1,4 @@
-# RDD Skill
+# RDD Skills
 
 RDD means Reliability-Driven Design: a three-layer skill workflow for AI coding agents.
 
@@ -24,4 +24,3 @@ Each RDD skill bundles its own `references/` directory so a single skill folder 
 python .\scripts\verify_rdd_skill_mirrors.py
 $env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\rdd-forward-test-implementation -p 'test_*.py'
 ```
-
