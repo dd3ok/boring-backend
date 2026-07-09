@@ -18,6 +18,18 @@ RDD means Reliability-Driven Design: a three-layer skill workflow for AI coding 
 
 Each RDD skill bundles its own `references/` directory so a single skill folder can be copied or installed without broken cross-skill links.
 
+## Install
+
+Install only the skill folders, not the repository root. With Codex `skill-installer`, use these arguments:
+
+```powershell
+--repo dd3ok/rdd-skills --path skills/rdd-design skills/rdd-implementation skills/rdd-review
+```
+
+Manual install is also path-only: copy `skills/rdd-design`, `skills/rdd-implementation`, and `skills/rdd-review` into your runtime's skills directory.
+
+Do not install `.agents/`, `.claude/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, test artifacts, and verification utilities.
+
 ## Verification
 
 ```powershell
