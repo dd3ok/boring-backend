@@ -18,13 +18,11 @@ Read this file first. Load only catalogs that can change implementation, evidenc
 | Production readiness, observability, SLOs, rollout, rollback, migration rollout, incident readiness, cost/resource risk | `operations-guard-catalog.md` |
 | Existing API/schema compatibility, versioning, deprecation, field/type/nullability/enums, documented client semantics, SDKs | `compatibility-governance-guard-catalog.md` |
 
-Use `catalog_route` to name why each non-default catalog was loaded.
-
 ## Production Evidence
 
-Use a production-evidence run only for explicit production-ready, actual DB, query plan, load test, p95/p99, saturation, observability, SLO, rollout, or rollback requests.
+Use production-evidence mode only for explicitly requested environment-specific L4 evidence such as deployed query plans, load, p95/p99, saturation, observability, SLOs, rollout, or rollback.
 
-Without that trigger, implement or review L2/L3 guards and name L4 gaps. Do not turn ordinary CRUD work into load testing.
+Real DB integration remains L2. Without an environment-specific L4 request, implement or review L2/L3 guards and name L4 gaps. Do not turn ordinary CRUD work into load testing.
 
 ## Evidence Levels
 
@@ -36,4 +34,4 @@ Use the lowest evidence level that proves the relevant guard. Missing runnable e
 | L1 Unit/domain | validation, error mapping, state transition unit tests | isolated local behavior |
 | L2 Integration | real DB/repository/API smoke/framework wiring tests | components work together in the target stack |
 | L3 Risk-specific | concurrency, idempotency replay, authz bypass, migration compatibility, contract, duplicate event tests | named P1/P2 guard holds under its failure mode |
-| L4 Production-readiness | load test, query plan, canary metric, SLO dashboard, restore drill, rollback rehearsal, failure injection | operational behavior is evidenced, not inferred |
+| L4 Production-readiness | environment-specific load, query plan, canary metric, SLO dashboard, restore drill, rollback rehearsal, failure injection | operational behavior in the designated environment is evidenced, not inferred |

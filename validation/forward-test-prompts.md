@@ -20,7 +20,7 @@ Prompt:
 Use $boring-backend to build a small FastAPI order API. It must support product create/list, order create, payment, cancellation, SQLite persistence, idempotency for create/payment/cancel, and pytest verification.
 ```
 
-Pass signal: implementation mode triggers; the contract and core guard catalog are read; focused idempotency and stock tests are added; success replay, payload mismatch conflict, and handled failure replay are checked; speculative interfaces, event buses, and plugin layers are avoided.
+Pass signal: implementation mode triggers; the contract and core guard catalog are read; natural operation IDs, unique constraints, conditional writes, or a durable key plus fingerprint are accepted idempotency mechanisms; payload mismatch is rejected; only contract-final outcomes replay; transient failures are not cached by default; repeated or concurrent requests prove no double side effect; focused stock tests are added; speculative interfaces, event buses, and plugin layers are avoided.
 
 ## Review Behavior
 
@@ -30,7 +30,7 @@ Prompt:
 Use $boring-backend to review this generated order API for P0-P4 issues, idempotency gaps, concurrency risk, API status-code mismatches, and production-readiness overclaims.
 ```
 
-Pass signal: review mode triggers; the core guard catalog is read; findings are ordered by severity; missing runnable evidence is not treated as success; files are not edited unless self-review remediation or fixes are requested.
+Pass signal: review mode triggers; the core guard catalog is read; findings are ordered by severity; missing runnable evidence is not treated as success; review-only work never edits, while an authorized fix run leaves no new regression test failing.
 
 ## Ambiguous Request
 

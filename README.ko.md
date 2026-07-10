@@ -33,6 +33,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
+- `scripts/run_skill_eval.py`: 선택적으로 provider adapter를 trigger suite에 실행하고 크기가 제한된 프로토콜 출력을 `reports/` 아래에 기록합니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
 - `reports/`: 생성된 평가 출력을 두는 ignore 대상 작업 디렉터리입니다. 빈 로컬 경로만 유지합니다.
@@ -59,6 +60,8 @@ Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니
 
 ## 검증
 
+검증은 CPython 3.11부터 3.14까지 지원합니다. 더 최신 CPython 버전은 검증되지 않았습니다.
+
 프로젝트 로컬 Python 3 가상환경에 개발 의존성을 설치합니다.
 
 ```text
@@ -73,7 +76,23 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-GitHub Actions에서도 같은 진입점을 Ubuntu, macOS, Windows에서 실행합니다.
+GitHub Actions에서는 같은 진입점을 Ubuntu, macOS, Windows의 CPython 3.14에서 실행하고, Ubuntu의 CPython 3.11에서도 실행합니다.
+
+## 평가
+
+실제 에이전트 평가는 선택적으로 실행하며 CI에는 넣지 않습니다. Adapter는 신뢰하는 로컬 프로그램이며, harness는 프로토콜을 검증할 뿐 sandbox가 아닙니다. Adapter는 background descendant를 만들거나 request의 run directory 밖에 쓰면 안 됩니다. Timeout 시 adapter process tree 정리는 최선 노력(best effort)으로 수행합니다.
+
+Harness는 저장소 루트에서 adapter를 시작하므로 상대 adapter 인자는 그 위치를 기준으로 해석됩니다. Adapter는 `--request`, `--response` JSON 경로를 받고 평가 대상 agent를 request의 `paths.workspace`에서 실행해야 하며, agent에는 request 최상위의 `query`만 전달해야 합니다. 평가 suite, label, case id, rationale, 예상 결과를 들여다보면 안 됩니다. 이 규칙을 어긴 adapter의 metric은 신뢰할 수 없습니다. Activation, catalog read, usage는 벤더 trace나 API가 제공할 때만 기록하고, 알 수 없는 값은 `null`로 남겨야 합니다.
+
+Case/trial block과 block 안의 variant 순서는 `--seed`로 결정론적으로 무작위화하며, 한 block의 모든 variant에는 동일한 paired seed를 전달합니다. 응답 객체는 `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), 실행 디렉터리 기준 `artifacts`, adapter `metadata`를 받습니다. Usage 값은 `null` 또는 0 이상 9,007,199,254,740,991 이하의 정수여야 합니다. Harness는 stdout을 버리고 stderr를 동시에 비우면서 최대 2 KiB excerpt만 보관합니다. JSON nesting은 100으로 제한하고, 응답은 최대 64 KiB에 1 byte를 더 읽어 상한 초과를 감지하며, 선언 artifact는 최대 32개 파일, 합계 16 MiB까지 허용합니다.
+
+각 출력에는 request/response run artifact, 제한된 stderr excerpt, JSONL 결과, summary, manifest가 포함됩니다. Manifest에는 Git commit과 dirty 상태, dirty일 때 worktree/diff digest, harness hash, skill hash, 파일로 해석되는 runner command 인자의 hash를 기록합니다.
+
+```text
+python scripts/run_skill_eval.py --output reports/eval/run-001 --trials 3 --seed 17 --variant current=skills/boring-backend --variant baseline --runner-exe python --runner-arg path/to/vendor_adapter.py --runner-meta vendor=example --runner-meta model=example
+```
+
+저장소에 포함된 것은 프로토콜 검사용 결정론적 fixture뿐이며 실제 벤더 adapter가 아닙니다. Fixture 실행은 harness 동작만 증명하며 스킬 품질이나 토큰 절감 효과를 증명하지 않습니다. `forward-test-prompts.md`는 사람이 평가하거나 별도 grader가 사용하는 behavior rubric으로 유지합니다.
 
 ## 라이선스
 

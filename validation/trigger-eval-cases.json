@@ -51,6 +51,12 @@
       "rationale": "The request explicitly asks for API production-readiness evidence."
     },
     {
+      "id": "openapi-nullability-contract",
+      "query": "Change the public OpenAPI order schema so customer_id becomes optional and nullable, regenerate clients, and assess whether existing consumers remain compatible.",
+      "should_trigger": true,
+      "rationale": "This is a contract and compatibility change even if the edited source is an API description."
+    },
+    {
       "id": "ui-auth-error-copy",
       "query": "Change the authorization error text in the web UI from 'Forbidden' to 'You do not have access'. No API behavior changes are needed.",
       "should_trigger": false,
@@ -97,6 +103,12 @@
       "query": "Add API, reliability, and concurrency keywords to the package metadata only; do not change source or runtime configuration.",
       "should_trigger": false,
       "rationale": "This is a metadata-only change despite matching several discovery keywords."
+    },
+    {
+      "id": "backend-guide-prose-copy",
+      "query": "Fix grammar in the documentation paragraph that explains API retries. Do not change schemas, examples, commands, contracts, or runtime behavior.",
+      "should_trigger": false,
+      "rationale": "This is non-contract prose editing despite backend and retry terminology."
     }
   ]
 }

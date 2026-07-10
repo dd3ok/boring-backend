@@ -211,6 +211,7 @@ def validate_reference_structure(base: Path, issues: list[str]) -> None:
 
 
 def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
+    """Apply lexical contract guards; behavioral correctness requires external evaluation."""
     if base.name not in SKILLS:
         return
 
@@ -219,7 +220,32 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
     corpus_parts: list[str] = []
     if skill_md.exists():
         skill_text = skill_md.read_text(encoding="utf-8")
+        skill_lower = skill_text.lower()
         corpus_parts.append(skill_text)
+        frontmatter = skill_frontmatter(skill_md, [])
+        description = frontmatter.get("description", "") if frontmatter else ""
+        description_lower = description.lower() if isinstance(description, str) else ""
+        description_terms = (
+            "concurrenc",
+            "dependenc",
+            "migration",
+            "compatib",
+            "docs",
+            "contract",
+        )
+        has_ui_boundary = re.search(r"\bui\b", description_lower) is not None
+        has_negative_boundary = any(
+            marker in description_lower for marker in ("not for", "not ui", "non-contract", "exclud")
+        )
+        if (
+            any(term not in description_lower for term in description_terms)
+            or not has_ui_boundary
+            or not has_negative_boundary
+        ):
+            fail(
+                f"selection description must cover dependencies/migrations/compatibility and exclude UI/docs-only edits in {display_path(skill_md)}",
+                issues,
+            )
         for line in skill_text.splitlines():
             if "operations-guard-catalog.md" in line and re.search(
                 r"\bfor\b.*(?:\bcompatibility\b|backup/restore)", line
@@ -243,8 +269,19 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             fail(f"missing ordinary subagent route to subagent-delegation.md in {display_path(skill_md)}", issues)
         if any("handoff-reporting.md" in line and "subagent" in line.lower() for line in skill_text.splitlines()):
             fail(f"ordinary subagents need a separate subagent delegation reference in {display_path(skill_md)}", issues)
-        if "reports/handoffs/" in skill_text or "handoff-first" in skill_text:
-            fail(f"handoff detail belongs in references/handoff-reporting.md, not {display_path(skill_md)}", issues)
+        if "review-only work never edits" not in skill_lower:
+            fail(f"missing review-only no-edit rule in {display_path(skill_md)}", issues)
+        if re.search(
+            r"review-only[^.\n]*(?:may|can|should|must)\s+(?:still\s+)?(?:edit|modify|add|write|patch)",
+            skill_lower,
+        ):
+            fail(f"contradictory review-only edit permission in {display_path(skill_md)}", issues)
+        fix_terms = ("authorized fix run", "regression test", "rerun", "failing")
+        if any(term not in skill_lower for term in fix_terms):
+            fail(f"missing authorized fix regression-test rule in {display_path(skill_md)}", issues)
+        output_terms = ("scale output", "task size", "risk", "non-obvious catalog choices")
+        if any(term not in skill_lower for term in output_terms):
+            fail(f"missing task/risk-scaled output guidance in {display_path(skill_md)}", issues)
 
     guard_catalog = base / "references" / "core-guard-catalog.md"
     if guard_catalog.exists():
@@ -252,6 +289,31 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         if "| P3 | Maintainability, package structure, performance/ops risk, or undue complexity |" not in guard_text:
             fail(f"core P3 severity lacks performance/ops risk in {display_path(guard_catalog)}", issues)
         guard_lower = guard_text.lower()
+        idempotency_terms = (
+            "natural operation",
+            "unique constraint",
+            "conditional write",
+            "durable",
+            "request fingerprint",
+            "payload",
+            "mismatch",
+            "contract-final",
+            "transient",
+            "do not cache",
+            "double side effect",
+        )
+        missing_idempotency = [term for term in idempotency_terms if term not in guard_lower]
+        if missing_idempotency:
+            fail(
+                f"missing idempotency contract {missing_idempotency!r} in {display_path(guard_catalog)}",
+                issues,
+            )
+        p0_lines = [line.lower() for line in guard_text.splitlines() if "| p0 |" in line.lower()]
+        if not any("artifact" in line and "defect" in line for line in p0_lines):
+            fail(f"missing P0 artifact-defect boundary in {display_path(guard_catalog)}", issues)
+        evidence_gap_terms = ("environment", "tool", "credential", "evidence gap", "not p0", "artifact")
+        if any(term not in guard_lower for term in evidence_gap_terms):
+            fail(f"missing environment evidence-gap boundary in {display_path(guard_catalog)}", issues)
         if "first-run experiments" in guard_lower or "pre-register" in guard_lower:
             fail(f"experiment fairness belongs outside runtime, not {display_path(guard_catalog)}", issues)
 
@@ -260,9 +322,19 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         routing_text = core_routing.read_text(encoding="utf-8")
         if "core-guard-catalog.md" not in routing_text:
             fail(f"core routing must point to core-guard-catalog.md in {display_path(core_routing)}", issues)
-        if "catalog_route" not in routing_text:
-            fail(f"missing catalog_route guidance in {display_path(core_routing)}", issues)
         routing_lower = routing_text.lower()
+        production_terms = ("production-evidence mode", "explicit", "environment-specific", "l4")
+        if any(term not in routing_lower for term in production_terms) or any(
+            "production-evidence" in line.lower() and "actual db" in line.lower()
+            for line in routing_text.splitlines()
+        ):
+            fail(f"missing environment-specific L4 production-evidence boundary in {display_path(core_routing)}", issues)
+        l2_lines = [line.lower() for line in routing_text.splitlines() if "l2 integration" in line.lower()]
+        if not any("real db" in line for line in l2_lines):
+            fail(f"missing real DB integration at L2 in {display_path(core_routing)}", issues)
+        l4_lines = [line.lower() for line in routing_text.splitlines() if "l4 production-readiness" in line.lower()]
+        if not any("environment-specific" in line for line in l4_lines):
+            fail(f"missing environment-specific L4 evidence definition in {display_path(core_routing)}", issues)
         security_route_terms = (
             "security-guard-catalog.md",
             "field binding",
@@ -278,26 +350,63 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         for label in ("L0 Static", "L1 Unit/domain", "L2 Integration", "L3 Risk-specific", "L4 Production-readiness"):
             if label not in routing_text:
                 fail(f"missing evidence level {label!r} in {display_path(core_routing)}", issues)
+
+    security_catalog = base / "references" / "security-guard-catalog.md"
+    if security_catalog.exists():
+        security_lower = security_catalog.read_text(encoding="utf-8").lower()
+        if "trusted server-side boundary" not in security_lower:
+            fail(f"missing trusted authorization boundary in {display_path(security_catalog)}", issues)
+        if not all(term in security_lower for term in ("scop", "read", "list")):
+            fail(f"missing scoped read/list authorization in {display_path(security_catalog)}", issues)
+
     handoff_reporting = base / "references" / "handoff-reporting.md"
     if handoff_reporting.exists():
         reporting_text = handoff_reporting.read_text(encoding="utf-8")
         reporting_lower = reporting_text.lower()
         required_groups = {
-            "handoff index": ("handoff index", "reports/handoffs/"),
-            "handoff fields": (
+            "handoff index": ("handoff index",),
+            "handoff destination": (
+                "only when requested",
+                "writes are allowed",
+                "user",
+                "workspace",
+                "designated",
+                "path",
+            ),
+            "handoff identity": (
+                "task_id",
+                "scope",
+                "source_revision",
+                "clean/dirty",
+                "digest",
+                "path_base",
+                "claims",
+            ),
+            "handoff claim evidence": (
                 "claim_id",
                 "claim_summary",
                 "file:line",
-                "evidence_path",
-                "command_exit",
-                "known_gap",
+                "command",
+                "exit",
+                "evidence",
+                "gaps",
             ),
-            "handoff-first fallback": (
+            "handoff path portability": ("relative to", "path_base"),
+            "handoff validation": (
+                "validate",
+                "task_id",
+                "scope",
+                "source_revision",
+                "dirty-state digest",
+                "path_base",
+                "current",
+            ),
+            "material-claim fallback": (
                 "handoff-first",
-                "full first report",
-                "cannot be resolved",
-                "handoff index",
-                "cited evidence",
+                "fuller evidence",
+                "unresolved material claims",
+                "priorit",
+                "p0-p2",
             ),
             "delta output": ("delta", "claim_id"),
         }
@@ -308,24 +417,6 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
                     f"missing handoff reporting {group}: {missing!r} in {display_path(handoff_reporting)}",
                     issues,
                 )
-        fallback_lines = [line for line in reporting_lower.splitlines() if "full first report" in line]
-        if not any(
-            "only for" in line
-            and "p0-p2" in line
-            and "cannot be resolved" in line
-            and "handoff index" in line
-            and "cited evidence" in line
-            for line in fallback_lines
-        ):
-            fail(
-                f"missing P0-P2-only full-report fallback in {display_path(handoff_reporting)}",
-                issues,
-            )
-        if "p0-p2-relevant" in reporting_lower:
-            fail(
-                f"evidence-gated handoff fallback must not open the full report for severity alone in {display_path(handoff_reporting)}",
-                issues,
-            )
         if "subagent prompt boundary" in reporting_lower or (
             "subagent" in reporting_lower and "allowed catalogs" in reporting_lower
         ):
@@ -340,31 +431,36 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
     if subagent_delegation.exists():
         subagent_text = subagent_delegation.read_text(encoding="utf-8")
         subagent_lower = subagent_text.lower()
-        required_terms = (
+        boundary_terms = (
             "user request",
+            "repository instructions",
+            "scope",
+            "paths",
+            "skill path",
             "mode",
+            "evidence constraints",
             "handoff",
-            "changed-file paths",
-            "allowed catalogs",
-            "required evidence commands",
-            "prior reports",
-            "transcripts",
-            "catalog text",
-            "raw logs",
             "file:line",
-            "command exits",
-            "evidence paths",
-            "known gaps",
-            "on-demand",
+            "commands",
+            "exits",
+            "evidence",
+            "gaps",
         )
-        missing = [term for term in required_terms if term not in subagent_lower]
+        missing = [term for term in boundary_terms if term not in subagent_lower]
         if missing:
             fail(
                 f"missing subagent delegation boundaries {missing!r} in {display_path(subagent_delegation)}",
                 issues,
             )
-        if len(subagent_text.split()) > 70:
-            fail(f"subagent delegation reference exceeds 70 words: {display_path(subagent_delegation)}", issues)
+        if "route catalogs" not in subagent_lower or "intentionally narrow" not in subagent_lower:
+            fail(f"missing subagent catalog autonomy in {display_path(subagent_delegation)}", issues)
+        independent_terms = ("independent validation", "raw artifacts", "no prior conclusions")
+        if any(term not in subagent_lower for term in independent_terms):
+            fail(f"missing independent validation inputs in {display_path(subagent_delegation)}", issues)
+        if "full logs" not in subagent_lower or "only when needed" not in subagent_lower:
+            fail(f"missing full logs only when needed rule in {display_path(subagent_delegation)}", issues)
+        if len(subagent_text.split()) > 90:
+            fail(f"subagent delegation reference exceeds 90 words: {display_path(subagent_delegation)}", issues)
     else:
         fail(f"missing {display_path(subagent_delegation)}", issues)
 
@@ -396,8 +492,15 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         fail(f"experiment-fairness.md belongs outside runtime references: {display_path(runtime_fairness)}", issues)
 
     corpus = "\n".join(corpus_parts)
-    if "production-evidence run" not in corpus:
-        fail(f"missing production-evidence run guidance in {display_path(base)}", issues)
+    corpus_lower = corpus.lower()
+    if "production-evidence mode" not in corpus_lower:
+        fail(f"missing production-evidence mode guidance in {display_path(base)}", issues)
+    if "catalog_route" in corpus_lower:
+        fail(f"runtime requires synthetic catalog_route output in {display_path(base)}", issues)
+    if "guarded-run comparison" in corpus_lower:
+        fail(f"guarded-run comparison phrase belongs outside runtime in {display_path(base)}", issues)
+    if re.search(r"reports[\\/]", corpus_lower):
+        fail(f"hardcoded handoff path belongs outside runtime in {display_path(base)}", issues)
     for term in (
         "token telemetry",
         "token_usage",
@@ -411,9 +514,7 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
                 f"runtime token accounting {term!r} belongs in external evaluation tooling, not {display_path(base)}",
                 issues,
             )
-    if "reports/handoffs/" not in corpus:
-        fail(f"missing implementation handoff guidance in {display_path(base)}", issues)
-    if "handoff-first" not in corpus:
+    if "handoff-first" not in corpus_lower:
         fail(f"missing handoff-first review guidance in {display_path(base)}", issues)
 
 
