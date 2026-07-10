@@ -12,7 +12,7 @@ Read this file only when the task touches latency, throughput, high-traffic endp
 | DB query path | Check indexes, query shape, N+1 risk, unbounded sort, large offset scans, row counts, and transaction scope. Prefer framework-native query/count tests or `EXPLAIN` evidence when performance is the goal. |
 | Resource saturation | Bound connection pools, thread pools, queues, memory buffers, file handles, and request body sizes. Do not hide saturation by adding unbounded workers. |
 | Payload and serialization | Avoid returning unused fields, large nested graphs, raw blobs, or repeated serialization work on hot endpoints. Prefer DTO/projection shapes that match the contract. |
-| Cache value | Measure the latency, throughput, or dependency-load benefit. Do not add a cache without a correctness owner for key scope, invalidation, stale tolerance, and caller/security context. |
+| Cache value | Measure the latency, throughput, or dependency-load benefit. Do not add a cache until key scope, invalidation, stale tolerance, and caller/security context are explicitly defined and owned. |
 | Microbenchmark scope | Use JMH, pytest-benchmark, k6, or equivalent only when the task asks for hot-path, latency, throughput, or algorithmic optimization. Do not add benchmark harnesses to ordinary CRUD work. |
 
 ## Review Lens

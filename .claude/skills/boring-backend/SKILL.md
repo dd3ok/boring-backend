@@ -1,6 +1,6 @@
 ---
 name: boring-backend
-description: Design, implement, or review API/service reliability changes involving authentication or authorization, data integrity, idempotency, concurrency, external dependencies, migrations, compatibility, performance, or operational risk. Skip UI-only, metadata-only, trivial refactor, and non-contract prose work.
+description: Design, implement, or review API/service reliability changes involving authentication or authorization, data integrity, idempotency, concurrency, external dependencies, migrations, compatibility, performance, or operational risk. Skip UI-only, metadata-only, trivial refactor, and prose-only work that cannot change API/service behavior, contracts, or operational risk.
 license: MIT
 ---
 
@@ -27,7 +27,7 @@ Correctness, security, integrity, status codes, and runnable evidence take prece
 5. Resolve material correctness, security, integrity, and contract risks before package structure or style.
 6. Choose the smallest conventional boundary that owns each invariant: route/controller, service/use-case, repository/DAO, DTO/schema, transaction, or error mapping.
 7. Map each relevant guard to evidence, a finding, or a named local-only gap. Do not claim production readiness from local smoke tests.
-8. Use the least costly evidence strong enough for the claim: static, unit, integration, risk-specific, then environment evidence as required. Scale detail to task size and risk.
+8. Choose evidence proportionate to the claim: static checks for loadability, unit tests for isolated behavior, integration tests for wiring, risk-specific tests for failure modes, and environment evidence for production claims. Scale detail to task size and risk.
 
 ## Risk Routing
 

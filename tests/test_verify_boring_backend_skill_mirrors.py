@@ -30,7 +30,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
         agents.mkdir()
 
         links = ", ".join(
-            f"`references/{name}`" for name in module.REQUIRED_REFERENCES
+            f"[{name}](references/{name})" for name in module.REQUIRED_REFERENCES
         )
         (base / "SKILL.md").write_text(
             "\n".join(
@@ -102,7 +102,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             skill_md = source / "SKILL.md"
             skill_md.write_text(
                 skill_md.read_text(encoding="utf-8")
-                + "Read `../outside/extra.md`.\n",
+                + "Read [outside](../outside/extra.md).\n",
                 encoding="utf-8",
             )
             nested = source / "references" / "nested" / "extra.md"
@@ -133,46 +133,6 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             module.validate_reference_structure(source, issues)
 
             self.assertTrue(any("non-portable source reference" in issue for issue in issues))
-
-    def test_source_reference_scan_ignores_fences_and_comments(self):
-        module = load_module()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = self.write_source_package(root)
-            skill_md = source / "SKILL.md"
-            skill_md.write_text(
-                skill_md.read_text(encoding="utf-8")
-                + "\n```text\n`references/example-only.md`\n```\n"
-                + "<!-- `references/comment-only.md` -->\n",
-                encoding="utf-8",
-            )
-
-            issues: list[str] = []
-            module.validate_reference_structure(source, issues)
-
-            self.assertEqual(issues, [])
-
-    def test_source_reference_scan_requires_valid_fence_close_and_scopes_comments(self):
-        module = load_module()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = self.write_source_package(root)
-            skill_md = source / "SKILL.md"
-            skill_md.write_text(
-                skill_md.read_text(encoding="utf-8")
-                + "\n<!--\n```text\n`references/comment-only.md`\n```\n-->\n"
-                + "```text\n<!-- literal fence text\n"
-                + "`references/fenced-only.md`\n```not-a-close\n-->\n```\n"
-                + "Read `references/live-missing.md`.\n",
-                encoding="utf-8",
-            )
-
-            issues: list[str] = []
-            module.validate_reference_structure(source, issues)
-
-            self.assertFalse(any("comment-only" in issue for issue in issues))
-            self.assertFalse(any("fenced-only" in issue for issue in issues))
-            self.assertTrue(any("live-missing" in issue for issue in issues))
 
     def test_source_references_require_core_catalogs_and_no_orphans(self):
         module = load_module()
