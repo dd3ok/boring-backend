@@ -274,57 +274,14 @@ class VerifyAllTests(unittest.TestCase):
                 for index, raw_path in enumerate(input_files):
                     self.assert_relative_existing_path(raw_path, f"case.input_files[{index}]")
 
-    def test_plugin_manifest_has_core_schema_and_safe_component_paths(self):
-        manifest_path = REPO / ".codex-plugin" / "plugin.json"
-        self.assertTrue(manifest_path.is_file(), f"missing {manifest_path}")
-        manifest = load_json_object(manifest_path)
-
-        self.assertEqual(manifest.get("name"), "boring-backend")
-        self.assertRegex(manifest.get("version", ""), r"\A(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)\Z")
-        self.assert_non_empty_string(manifest.get("description"), "description")
-        self.assertEqual(manifest.get("license"), "MIT")
-
-        author = manifest.get("author")
-        self.assertIsInstance(author, dict)
-        self.assert_non_empty_string(author.get("name"), "author.name")
-
-        interface = manifest.get("interface")
-        self.assertIsInstance(interface, dict)
-        for field in (
-            "displayName",
-            "shortDescription",
-            "longDescription",
-            "developerName",
-            "category",
-        ):
-            self.assert_non_empty_string(interface.get(field), f"interface.{field}")
-        default_prompt = interface.get("defaultPrompt")
-        self.assertIsInstance(default_prompt, list, "interface.defaultPrompt")
-        self.assertTrue(default_prompt, "interface.defaultPrompt")
-        self.assertTrue(
-            all(isinstance(value, str) and value.strip() for value in default_prompt),
-            "interface.defaultPrompt",
-        )
-        capabilities = interface.get("capabilities")
-        self.assertIsInstance(capabilities, list)
-        self.assertTrue(all(isinstance(value, str) and value.strip() for value in capabilities))
-
-        skills_root = self.assert_relative_existing_path(manifest.get("skills"), "skills")
-        self.assertEqual(skills_root, (REPO / "skills").resolve())
-        self.assertTrue((skills_root / "boring-backend" / "SKILL.md").is_file())
-
-        for field in ("apps", "mcpServers"):
-            value = manifest.get(field)
-            if isinstance(value, str):
-                self.assert_relative_existing_path(value, field)
-        for field in ("composerIcon", "logo", "logoDark"):
-            value = interface.get(field)
-            if value is not None:
-                self.assert_relative_existing_path(value, f"interface.{field}")
-        screenshots = interface.get("screenshots", [])
-        self.assertIsInstance(screenshots, list, "interface.screenshots")
-        for index, raw_path in enumerate(screenshots):
-            self.assert_relative_existing_path(raw_path, f"interface.screenshots[{index}]")
+    def test_distribution_stays_path_only(self):
+        self.assertFalse((REPO / ".codex-plugin").exists())
+        for path in (REPO / "README.md", REPO / "README.ko.md"):
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn("--path skills/boring-backend", text)
+                self.assertIn("references/*.md", text)
+                self.assertNotIn(".codex-plugin", text)
 
 
 if __name__ == "__main__":

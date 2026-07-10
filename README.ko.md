@@ -33,7 +33,6 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - `skills/boring-backend/`: 원본 skill 패키지입니다.
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
-- `.codex-plugin/plugin.json`: runtime skill subtree와 분리된 플러그인 패키징 manifest입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
@@ -43,14 +42,24 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
 ```text
---repo dd3ok/boring-backend --ref v1.1.0 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.1.1 --path skills/boring-backend
 ```
 
-수동 설치도 경로 기준으로만 하면 됩니다. `skills/boring-backend` 폴더를 사용하는 런타임의 skills 디렉터리에 복사합니다.
+설치 대상에는 완전한 runtime 패키지만 들어 있습니다.
 
-Path-only 설치가 직접 설치 경계입니다. `.codex-plugin/plugin.json`은 동일한 `skills/` tree를 Codex plugin marketplace용으로 패키징하지만, 이 저장소는 marketplace를 게시하지 않습니다. `agents/openai.yaml`은 skill metadata이지 plugin manifest가 아닙니다.
+```text
+boring-backend/
+|-- SKILL.md
+|-- LICENSE
+|-- agents/openai.yaml
+`-- references/*.md
+```
 
-Path-only 방식에서 자주 쓰는 로컬 설치 위치는 다음과 같습니다.
+이 파일들만으로 스킬 전체 기능이 동작합니다. `SKILL.md`가 필요한 reference만 조건부로 읽으며, 저장소의 테스트, 평가 입력, 검증 스크립트는 runtime 의존성이 아닙니다.
+
+수동 설치할 때는 `skills/boring-backend` 폴더 전체를 아래 위치로 복사합니다. 연결된 reference도 동작의 일부이므로 `SKILL.md`만 따로 복사하지 마세요.
+
+동일한 폴더를 설치하는 대표 위치는 다음과 같습니다.
 
 | Runtime | 프로젝트 범위 | 사용자 범위 |
 |---|---|---|
@@ -58,7 +67,7 @@ Path-only 방식에서 자주 쓰는 로컬 설치 위치는 다음과 같습니
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-`.agents/`, `.claude/`, `validation/`, `scripts/` 전체를 runtime skill로 설치하지 마세요. 이들은 개발용 미러, 평가 자산, 검증 유틸리티입니다.
+저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`, `CONTRIBUTING.md`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 
 ## 검증
 

@@ -14,6 +14,6 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-Do not install skills, plugins, packages, or test tools globally from this repository. Follow `validation/experiment-fairness.md` for release evaluation scope and isolation. Do not commit generated evaluation output or workspaces.
+Do not install packages or test tools globally from this repository. Follow `validation/experiment-fairness.md` for release evaluation scope and isolation. Do not commit generated evaluation output or workspaces.
 
-Always preserve path-only skill installation. Keep plugin packaging in `.codex-plugin/plugin.json`; `agents/openai.yaml` is skill metadata, not a plugin manifest.
+Always preserve path-only distribution: only `skills/boring-backend/` is installable. Keep repository mirrors, evaluation assets, tests, and verification tooling outside that boundary.

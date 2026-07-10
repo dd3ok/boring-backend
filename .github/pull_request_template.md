@@ -11,5 +11,5 @@ Describe the change and the evidence used to verify it.
 - [ ] If discovery metadata or activation boundaries changed, trigger evaluations were run from an external workspace; otherwise N/A.
 - [ ] If evaluations are claimed as release evidence, only a copied candidate skill and declared behavior prompt/inputs or trigger query reached the evaluated process, and source/grader paths were unreadable; otherwise N/A.
 - [ ] The runtime `skills/boring-backend/LICENSE` matches the root `LICENSE`.
-- [ ] If `.codex-plugin/plugin.json` changed, its schema and component paths were validated; otherwise N/A.
+- [ ] Install guidance still targets only `skills/boring-backend/`; repository tooling and mirrors remain outside the package.
 - [ ] No secrets, credentials, tokens, or sensitive report data are included.
