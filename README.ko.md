@@ -24,9 +24,9 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 
 - Design: 구현 전에 API 계약, 불변식, guard 전략, 트레이드오프, 필요한 증거 수준을 정리합니다.
 - Implementation: 범위를 통제하면서 API/service 코드를 구현하고, 테스트와 guard evidence를 남깁니다.
-- Review: P0-P4 기준으로 신뢰성, 보안, 데이터 무결성, 성능, 호환성, 운영 리스크를 점검합니다.
+- Review: 신뢰성, 보안, 데이터 무결성, 성능, 호환성, 운영 리스크를 영향도 순으로 보고합니다.
 
-환경별 운영 증거를 명시적으로 요청한 경우에는 조건부 안전 reference를 사용하며, 이를 네 번째 개발 모드로 취급하지 않습니다.
+환경별 운영 증거를 명시적으로 요청한 경우에는 침습적 작업 전에 조건부 안전 reference를 읽습니다.
 
 ## 구조
 
@@ -65,7 +65,7 @@ boring-backend/
 |---|---|---|
 | Codex / Agents | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
-| Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
+| Antigravity | `.agents/skills/boring-backend` | 제품/버전별로 다름; 프로젝트 범위 권장 |
 
 저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 
@@ -91,7 +91,7 @@ GitHub Actions에서는 같은 진입점을 Ubuntu, macOS, Windows의 CPython 3.
 
 ## 평가
 
-Runtime 지침이나 기대 출력이 바뀌면 behavior case를, discovery metadata나 activation 경계가 바뀌면 trigger case를 실행합니다. Cross-provider harness와 평가 CI는 선택 사항이며 이 저장소에는 포함하지 않습니다.
+Runtime 지침이나 기대 출력이 바뀌면 외부 provider별 runner로 behavior case를 실행하고, discovery metadata나 activation 경계가 바뀌면 trigger case를 실행합니다. 이 저장소에는 평가 입력과 격리 규칙만 두며 runner와 생성 결과는 포함하지 않습니다.
 
 - `validation/trigger-eval-cases.json`: 스킬을 직접 언급하지 않은 요청에서 activation 경계를 점검합니다.
 - `validation/behavior-eval-cases.json`: 스킬을 명시적으로 선택한 뒤 사용하는 prompt, 입력, grader 기대값의 machine-readable 정본입니다.

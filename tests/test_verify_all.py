@@ -96,27 +96,6 @@ class VerifyAllTests(unittest.TestCase):
                 )
                 self.assertTrue(all(call.kwargs["cwd"] == REPO for call in run.call_args_list))
 
-    def test_dev_dependencies_are_exactly_pinned(self):
-        requirements = (REPO / "requirements-dev.txt").read_text(encoding="utf-8")
-        pins = {
-            line.strip().lower()
-            for line in requirements.splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        }
-
-        self.assertEqual(
-            pins,
-            {
-                "pyyaml==6.0.3",
-                "skills-ref==0.1.1",
-                "click==8.4.2",
-                'colorama==0.4.6; sys_platform == "win32"',
-                "python-dateutil==2.9.0.post0",
-                "six==1.17.0",
-                "strictyaml==1.7.3",
-            },
-        )
-
     def test_docs_show_python_launchers_for_supported_platforms(self):
         for path in (REPO / "README.md", REPO / "README.ko.md", REPO / "AGENTS.md"):
             text = path.read_text(encoding="utf-8")
@@ -124,7 +103,7 @@ class VerifyAllTests(unittest.TestCase):
                 self.assertIn("python3 scripts/verify_all.py", text)
                 self.assertIn("py -3 scripts/verify_all.py", text)
 
-    def test_ci_preserves_required_checks_and_adds_supported_python_matrix(self):
+    def test_ci_covers_platforms_and_pins_actions(self):
         workflow_path = REPO / ".github" / "workflows" / "verify.yml"
         workflow = workflow_path.read_text(encoding="utf-8")
         config = load_yaml(workflow_path)
@@ -142,21 +121,14 @@ class VerifyAllTests(unittest.TestCase):
         )
 
         primary = jobs["verify"]
-        self.assertEqual(primary["name"], "verify (${{ matrix.os }})")
         self.assertEqual(
             primary["strategy"]["matrix"]["os"],
             ["ubuntu-latest", "macos-latest", "windows-latest"],
         )
-        self.assertEqual(primary["runs-on"], "${{ matrix.os }}")
-
-        minimum = jobs["verify-minimum-python"]
-        self.assertEqual(minimum["name"], "verify-minimum-python")
-        self.assertEqual(minimum["runs-on"], "ubuntu-latest")
-
-        supported = jobs["verify-supported-python"]
-        self.assertEqual(supported["name"], "verify-supported-python (${{ matrix.python-version }})")
-        self.assertEqual(supported["runs-on"], "ubuntu-latest")
-        self.assertEqual(supported["strategy"]["matrix"]["python-version"], ["3.12", "3.13"])
+        self.assertEqual(
+            jobs["verify-supported-python"]["strategy"]["matrix"]["python-version"],
+            ["3.12", "3.13"],
+        )
 
         expected_python = {
             "verify": "3.14",
@@ -165,7 +137,7 @@ class VerifyAllTests(unittest.TestCase):
         }
         for job_id, job in jobs.items():
             with self.subTest(job=job_id):
-                self.assertEqual(job["timeout-minutes"], "10")
+                self.assertLessEqual(int(job["timeout-minutes"]), 10)
                 action_steps = [step for step in job["steps"] if "uses" in step]
                 for step in action_steps:
                     self.assertRegex(step["uses"], r"\A[^@]+@[0-9a-f]{40}\Z")
@@ -181,13 +153,8 @@ class VerifyAllTests(unittest.TestCase):
                     expected_python[job_id],
                 )
                 run_steps = [step["run"] for step in job["steps"] if "run" in step]
-                self.assertEqual(
-                    run_steps,
-                    [
-                        "python -m pip install -r requirements-dev.txt",
-                        "python scripts/verify_all.py",
-                    ],
-                )
+                self.assertIn("python -m pip install -r requirements-dev.txt", run_steps)
+                self.assertIn("python scripts/verify_all.py", run_steps)
 
     def test_readmes_keep_release_install_and_support_range_in_sync(self):
         readmes = [

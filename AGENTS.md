@@ -14,6 +14,6 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-Do not install packages or test tools globally from this repository. Follow `validation/experiment-fairness.md` for release evaluation scope and isolation. Do not commit generated evaluation output or workspaces.
+Do not install packages or test tools globally from this repository. When release evidence uses an external evaluation runner, follow `validation/experiment-fairness.md` and identify the runner in the PR. Do not commit generated evaluation output or workspaces.
 
 Always preserve path-only distribution: only `skills/boring-backend/` is installable. Keep repository mirrors, evaluation assets, tests, and verification tooling outside that boundary.
