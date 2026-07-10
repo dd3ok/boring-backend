@@ -1,6 +1,6 @@
 ---
 name: boring-backend
-description: Use when designing, implementing, or reviewing API/service reliability for auth, data integrity, idempotency, concurrency, performance, distributed behavior, or ops risk.
+description: Designs, implements, or reviews API/service reliability when work involves auth, data integrity, idempotency, concurrency, performance, distributed behavior, or ops risk.
 ---
 
 # Boring Backend
@@ -30,9 +30,7 @@ Operational escalation: performance, cost, migration, observability, or release 
 6. Map each relevant guard to evidence, a finding, or a named local-only gap. Do not claim production readiness from local smoke tests.
 7. Verify with the strongest practical local evidence unless an L4 production-evidence run is requested.
 
-## References
-
-Read `references/core-guard-routing.md` first. It chooses the smallest applicable catalog set and defines evidence levels, production-evidence triggers, and token reporting. Do not load other catalogs unless routed there.
+Catalog targets; load only when routed: `references/core-guard-catalog.md`, `references/security-guard-catalog.md`, `references/data-lifecycle-guard-catalog.md`, `references/performance-guard-catalog.md`, `references/resilience-guard-catalog.md`, `references/operations-guard-catalog.md`, and `references/compatibility-governance-guard-catalog.md`.
 
 ## Mode Details
 
@@ -42,23 +40,17 @@ Implementation output: changed files, guard evidence, commands/results, architec
 
 Review output: verdict/confidence, P0-P4 findings or gaps, guard status, commands/results, architecture notes, remaining gaps, and fixes only when allowed.
 
-For token telemetry, follow `references/core-guard-routing.md#token-reporting`.
+When token telemetry exists, read `references/token-reporting.md`.
 
-## Handoff
+Read `references/subagent-delegation.md` before ordinary subagent delegation.
 
-When first-attempt experiments or multi-phase runs request reports, write `reports/handoffs/<task>-first-handoff.json` before review. Include contract bullets, guard evidence, known gaps, commands/results, changed files, and token fields when telemetry exists.
-
-Use handoff-first review when that file exists: read it before the full first report, then open only cited files, evidence, and relevant catalogs unless a claim is unclear or contradicted.
+Read `references/experiment-reporting.md` for experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.
 
 ## Fix Rules
 
 If review adds a failing test, the work is not complete until the code is fixed and the test is rerun. A RED test left behind is evidence, not success.
 
 Patch the narrowest code path that owns the invariant. Keep unrelated refactors out. Preserve public API unless the contract requires change.
-
-## Experiment Fairness
-
-First-run experiments: do not feed postmortem traps after seeing failures. Guarded clean runs: use the same pre-registered guard list for every variant.
 
 ## Skip Conditions
 

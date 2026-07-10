@@ -33,6 +33,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
 - `validation/`: 유지보수용 forward-test prompt입니다. runtime skill에는 포함하지 않습니다.
+- `scripts/verify_all.py`: 미러, 레포 테스트, forward-test 구현 테스트를 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
 - `reports/`: forward-test 보고서와 작은 실행 가능 구현 테스트 산출물입니다.
 
@@ -40,7 +41,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
-```powershell
+```text
 --repo dd3ok/boring-backend --path skills/boring-backend
 ```
 
@@ -58,8 +59,18 @@ Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니
 
 ## 검증
 
-```powershell
-python .\scripts\verify_boring_backend_skill_mirrors.py
-python -m unittest discover -s .\tests
-$env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s .\reports\boring-backend-forward-test-implementation -p 'test_*.py'
+프로젝트 로컬 Python 3 가상환경에 개발 의존성을 설치합니다.
+
+```text
+python -m pip install -r requirements-dev.txt
 ```
+
+그다음 레포 루트에서 활성화된 가상환경이나 운영체제의 Python 3 실행기로 검증 진입점을 실행합니다.
+
+```text
+python scripts/verify_all.py
+python3 scripts/verify_all.py  # macOS/Linux
+py -3 scripts/verify_all.py    # Windows
+```
+
+GitHub Actions에서도 같은 진입점을 Ubuntu, macOS, Windows에서 실행합니다.

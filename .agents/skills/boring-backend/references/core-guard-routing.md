@@ -11,12 +11,14 @@ Read this file first. Load only catalogs that can change implementation, evidenc
 
 | Trigger | Read |
 |---|---|
-| Auth, roles, ownership, public input, secrets, logs, CORS/TLS, user-controlled URLs | `security-guard-catalog.md` |
-| Schema constraints, migrations, backfills, transaction isolation, replication lag, retention, audit, backup/restore | `data-lifecycle-guard-catalog.md` |
-| Latency, throughput, high traffic, list/search/export/bulk, DB performance, N+1, indexes, pools, payload, caching | `performance-guard-catalog.md` |
-| External calls, retries, timeouts, locks, transactions, queues/events, quotas, backpressure, distributed/MSA behavior | `resilience-guard-catalog.md` |
+| Authn/authz, tenant/owner boundary, public field binding/mass assignment, server-owned fields, sensitive data/logging, CORS/TLS, user-controlled URLs, untrusted third-party responses, interpreter inputs | `security-guard-catalog.md` |
+| Durable schema/data model, constraints/indexes, migrations/backfills, non-default isolation/locking, replication, retention/audit/restore | `data-lifecycle-guard-catalog.md` |
+| Performance goal/claim, high-traffic path, large list/search/export/bulk, DB plan/index/N+1/pool/payload/cache optimization | `performance-guard-catalog.md` |
+| External dependencies, retries/timeouts, queues/events, distributed locks, cache consistency, quotas/backpressure/overload | `resilience-guard-catalog.md` |
 | Production readiness, observability, SLOs, rollout, rollback, migration rollout, incident readiness, cost/resource risk | `operations-guard-catalog.md` |
-| API/schema compatibility, versioning, deprecation, response fields, enums, pagination/filtering/sorting semantics | `compatibility-governance-guard-catalog.md` |
+| Existing API/schema compatibility, versioning, deprecation, field/type/nullability/enums, documented client semantics, SDKs | `compatibility-governance-guard-catalog.md` |
+
+Use `catalog_route` to name why each non-default catalog was loaded.
 
 ## Production Evidence
 
@@ -35,7 +37,3 @@ Use the lowest evidence level that proves the relevant guard. Missing runnable e
 | L2 Integration | real DB/repository/API smoke/framework wiring tests | components work together in the target stack |
 | L3 Risk-specific | concurrency, idempotency replay, authz bypass, migration compatibility, contract, duplicate event tests | named P1/P2 guard holds under its failure mode |
 | L4 Production-readiness | load test, query plan, canary metric, SLO dashboard, restore drill, rollback rehearsal, failure injection | operational behavior is evidenced, not inferred |
-
-## Token Reporting
-
-When telemetry exists, separate `total_tokens`, `input_tokens`, `cached_input_tokens`, `noncached_input_tokens`, `output_tokens`, and `reasoning_output_tokens`. Treat cached input as reference loading signal, not new reasoning output.

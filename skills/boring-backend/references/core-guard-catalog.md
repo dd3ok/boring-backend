@@ -39,7 +39,3 @@ Ask for evidence, not intent:
 | P4 | Naming, style, verbosity, token cost, or report quality |
 
 Rank P0/P1/P2 ahead of architecture preference. Token cost is a tie-breaker, not correctness evidence.
-
-## Fairness
-
-For first-run experiments, do not inject postmortem traps into implementation prompts after seeing candidate failures. For guarded clean runs, pre-register the same guard list for every variant.
