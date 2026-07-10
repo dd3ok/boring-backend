@@ -33,10 +33,8 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
-- `scripts/run_skill_eval.py`: 선택적으로 provider adapter를 trigger suite에 실행하고 크기가 제한된 프로토콜 출력을 `reports/` 아래에 기록합니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
-- `reports/`: 생성된 평가 출력을 두는 ignore 대상 작업 디렉터리입니다. 빈 로컬 경로만 유지합니다.
 
 ## 설치
 
@@ -58,7 +56,7 @@ Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-`.agents/`, `.claude/`, `validation/`, `reports/`, `scripts/` 전체를 runtime skill로 설치하지 마세요. 이들은 개발용 미러, 평가 자산, 생성 출력, 검증 유틸리티입니다.
+`.agents/`, `.claude/`, `validation/`, `scripts/` 전체를 runtime skill로 설치하지 마세요. 이들은 개발용 미러, 평가 자산, 검증 유틸리티입니다.
 
 ## 검증
 
@@ -82,21 +80,13 @@ GitHub Actions에서는 같은 진입점을 Ubuntu, macOS, Windows의 CPython 3.
 
 ## 평가
 
-실제 에이전트 평가는 선택적으로 실행하며 CI에는 넣지 않습니다. Adapter는 신뢰하는 로컬 프로그램이며, harness는 프로토콜을 검증할 뿐 sandbox가 아닙니다. Adapter는 background descendant를 만들거나 request의 run directory 밖에 쓰면 안 됩니다. Timeout 시 adapter process tree 정리는 최선 노력(best effort)으로 수행합니다.
+에이전트 평가는 선택 사항이며 CI와 runtime skill 밖에서 수행합니다. 이 저장소는 범용 평가 harness나 벤더 adapter를 포함하지 않습니다.
 
-보고서 `--output`은 `reports/` 아래에 둘 수 있지만 실제 실행은 그 안에서 하지 않습니다. Harness는 기본적으로 저장소 밖의 시스템 임시 경로에 실행용 work root를 만들고 실행 후 정리합니다. 디버깅을 위해 `--work-root`를 직접 지정하면 그 경로를 보존합니다. 이 경로는 새 경로이거나 비어 있어야 하고, 보고서 경로와 분리되어야 하며, 저장소 밖에 있어야 하고, 상위 경로에 같은 이름의 `.agents/skills/`, `.claude/skills/`, `.codex/skills/`, `.gemini/config/skills/`가 없어야 합니다. 이 조건으로 work path에서 발견 가능한 프로젝트·사용자 스킬 복사본이 no-skill baseline에 섞이는 문제를 막습니다.
+- `validation/trigger-eval-cases.json`: 스킬을 직접 언급하지 않은 요청에서 activation 경계를 점검합니다.
+- `validation/forward-test-prompts.md`: 스킬을 명시적으로 선택한 뒤 동작 품질을 점검합니다.
+- `validation/experiment-fairness.md`: 현재 스킬을 no-skill 또는 이전 버전과 공정하게 비교할 때 따릅니다.
 
-Harness는 각 adapter를 해당 run의 작업 디렉터리에서 시작합니다. 저장소 루트 기준으로 존재하는 runner command 파일 인자는 실행 전에 절대 경로로 바꿉니다. Adapter는 `--request`, `--response` JSON 경로를 받고 평가 대상 agent를 request의 `paths.workspace`에서 실행해야 하며, agent에는 request 최상위의 `query`만 전달해야 합니다. 또한 request의 `isolation` 계약에 따라 `allowed_skill_path` 밖에 있는 같은 이름의 사용자·관리자·managed·기설치 스킬을 비활성화하고, 필수 응답 확인에 격리 방법을 반환해야 합니다. 평가 suite, label, case id, rationale, 예상 결과를 들여다보면 안 됩니다. 이 규칙을 어긴 adapter의 metric은 신뢰할 수 없습니다. Activation, catalog read, usage는 벤더 trace나 API가 제공할 때만 기록하고, 알 수 없는 값은 `null`로 남겨야 합니다.
-
-Case/trial block과 block 안의 variant 순서는 `--seed`로 결정론적으로 무작위화하며, 한 block의 모든 variant에는 동일한 paired seed를 전달합니다. 응답 객체는 `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), 실행 디렉터리 기준 `artifacts`, adapter `metadata`, 필수 `isolation` 확인을 받습니다. 격리 확인은 `verified`를 `true`로 설정하고, 비어 있지 않은 `method`와 빈 `unexpected_same_name_skills` 배열을 제공해야 합니다. 이 조건을 만족하지 않으면 run이 실패합니다. Usage 값은 `null` 또는 0 이상 9,007,199,254,740,991 이하의 정수여야 합니다. Harness는 stdout을 버리고 stderr를 동시에 비우면서 최대 2 KiB excerpt만 보관합니다. JSON nesting은 100으로 제한하고, 응답은 최대 64 KiB에 1 byte를 더 읽어 상한 초과를 감지하며, 선언 artifact는 최대 32개 파일, 합계 16 MiB까지 허용합니다.
-
-각 보고서에는 보관된 request/response 파일, 제한된 stderr excerpt, 선언된 artifact, JSONL 결과, summary, manifest가 포함됩니다. 선언하지 않은 workspace 파일과 run별 runtime 복사본은 격리된 work root의 수명 동안만 존재하고 보고서로 복사하지 않습니다. Manifest에는 work-root 정책, Git commit과 dirty 상태, dirty일 때 worktree/diff digest, harness hash, skill hash, 파일로 해석되는 runner command 인자의 hash를 기록합니다.
-
-```text
-python scripts/run_skill_eval.py --output reports/eval/run-001 --trials 3 --seed 17 --variant current=skills/boring-backend --variant baseline --runner-exe python --runner-arg path/to/vendor_adapter.py --runner-meta vendor=example --runner-meta model=example
-```
-
-저장소에 포함된 것은 프로토콜 검사용 결정론적 fixture뿐이며 실제 벤더 adapter가 아닙니다. Fixture 실행은 harness 동작만 증명하며 스킬 품질이나 토큰 절감 효과를 증명하지 않습니다. `forward-test-prompts.md`는 사람이 평가하거나 별도 grader가 사용하는 behavior rubric으로 유지합니다.
+평가는 수동으로 실행하거나 벤더가 제공하는 공식 평가·trace 도구를 사용하세요. Activation, catalog 사용량, 토큰 절감 효과는 벤더가 해당 telemetry를 제공할 때만 측정값으로 주장하고, 최종 답변 문구에서 추정하지 마세요. 반복 가능한 cross-provider 자동화가 필요해지면 스킬 패키지를 키우지 않도록 별도 평가 도구나 저장소로 분리하세요.
 
 ## 라이선스
 

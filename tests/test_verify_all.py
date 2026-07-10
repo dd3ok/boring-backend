@@ -178,21 +178,18 @@ class VerifyAllTests(unittest.TestCase):
             with self.subTest(checklist_term=required_term):
                 self.assertTrue(any(required_term in line for line in checklist_lines))
 
-    def test_public_package_has_license_and_no_stale_forward_test_artifacts(self):
+    def test_public_package_has_license(self):
         self.assertTrue((REPO / "LICENSE").exists())
-        self.assertTrue((REPO / "reports" / ".gitkeep").exists())
-        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-design.md").exists())
-        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-implementation.md").exists())
-        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-review.md").exists())
-        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-implementation").exists())
 
-    def test_evaluation_assets_stay_external_and_cover_trigger_boundaries(self):
+    def test_evaluation_assets_stay_lightweight_and_cover_trigger_boundaries(self):
         fairness_path = REPO / "validation" / "experiment-fairness.md"
         trigger_path = REPO / "validation" / "trigger-eval-cases.json"
+        forward_test_path = REPO / "validation" / "forward-test-prompts.md"
         runtime_root = REPO / "skills" / "boring-backend"
 
         self.assertTrue(fairness_path.exists())
         self.assertTrue(trigger_path.exists())
+        self.assertTrue(forward_test_path.exists())
         self.assertFalse((runtime_root / "references" / "experiment-reporting.md").exists())
         self.assertTrue((runtime_root / "references" / "handoff-reporting.md").exists())
 

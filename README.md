@@ -31,10 +31,8 @@ The skill uses one trigger with four internal modes:
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
 - `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
-- `scripts/run_skill_eval.py`: runs opt-in provider adapters against the trigger suite and writes bounded protocol output under `reports/`.
 - `scripts/verify_all.py`: runs mirror and repository checks.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
-- `reports/`: ignored workspace for generated evaluation output; retained only as an empty local target.
 
 ## Install
 
@@ -56,7 +54,7 @@ Common local targets:
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, evaluation assets, generated output, and verification utilities.
+Do not install `.agents/`, `.claude/`, `validation/`, or `scripts/` as runtime skills. They are development mirrors, evaluation assets, and verification utilities.
 
 ## Verification
 
@@ -80,21 +78,13 @@ GitHub Actions runs the same entrypoint on CPython 3.14 for Ubuntu, macOS, and W
 
 ## Evaluation
 
-Real agent evaluations are opt-in and stay outside CI. Adapters are trusted local programs; the harness validates its protocol but is not a sandbox. An adapter must not create background descendants or write outside the request's run directory. Timeout cleanup terminates the adapter process tree on a best-effort basis.
+Agent evaluations are optional and stay outside CI and the runtime skill. This repository intentionally does not ship a cross-provider evaluation harness or vendor adapter.
 
-The report `--output` may stay under `reports/`, but execution does not. By default the harness creates an auto-cleaned system temporary work root outside the repository. An explicit `--work-root` is retained for debugging and must be new or empty, separate from the report output, outside this repository, and free of same-name `.agents/skills/`, `.claude/skills/`, `.codex/skills/`, or `.gemini/config/skills/` ancestors. This prevents project or user skill copies from contaminating a no-skill baseline when they are discoverable from the work path.
+- Use `validation/trigger-eval-cases.json` to check implicit activation boundaries.
+- Use `validation/forward-test-prompts.md` to review behavior after explicitly selecting the skill.
+- Follow `validation/experiment-fairness.md` when comparing the current skill with no skill or a previous version.
 
-The harness starts each adapter in its per-run work directory. Runner command arguments that name files relative to the repository root are resolved to absolute paths before launch. The adapter receives `--request` and `--response` JSON paths, must run the evaluated agent in the request's `paths.workspace`, and must send only the request's top-level `query` to that agent. It must enforce the request's `isolation` contract by disabling any same-name user, admin, managed, or otherwise preinstalled skill outside `allowed_skill_path`, and return its isolation method in the required response attestation. It must not inspect the evaluation suite, labels, case ids, rationale, or expected result. Metrics from an adapter that violates these rules are untrusted. Activation, catalog reads, and usage must come from vendor traces or APIs and remain `null` when unavailable.
-
-Case/trial blocks and per-block variant order are deterministically randomized from `--seed`; every variant in a block receives the same paired seed. The response object accepts `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), run-relative `artifacts`, adapter `metadata`, and a required `isolation` attestation. The attestation must set `verified` to `true`, name a nonempty `method`, and report an empty `unexpected_same_name_skills` array; otherwise the run fails. Each usage value must be `null` or an integer from 0 through 9,007,199,254,740,991. The harness discards stdout, concurrently drains stderr while retaining at most a 2 KiB excerpt, limits JSON nesting to 100, reads at most 64 KiB plus one byte from the response, and accepts at most 32 declared artifact files totaling 16 MiB.
-
-Each report includes archived request/response files, bounded stderr excerpts, declared artifacts, JSONL results, summary, and a manifest. Undeclared workspace files and per-run runtime copies exist only for the lifetime of the isolated work root and are not copied into the report. The manifest records the work-root policy, Git commit and dirty state, a worktree/diff digest when dirty, the harness hash, skill hashes, and hashes for runner command arguments that resolve to files.
-
-```text
-python scripts/run_skill_eval.py --output reports/eval/run-001 --trials 3 --seed 17 --variant current=skills/boring-backend --variant baseline --runner-exe python --runner-arg path/to/vendor_adapter.py --runner-meta vendor=example --runner-meta model=example
-```
-
-The repository includes only a deterministic test fixture for the protocol, not a real vendor adapter. A fixture run proves harness behavior, not skill quality or token savings. Keep `forward-test-prompts.md` as a human or separately graded behavior rubric.
+Run these checks manually or with the vendor's official evaluation and trace tooling. Claim measured activation, catalog use, or token savings only when the vendor exposes the corresponding telemetry; do not infer it from the final answer. Keep any future cross-provider automation in a separate evaluation tool or repository so it does not expand this skill package.
 
 ## License
 
