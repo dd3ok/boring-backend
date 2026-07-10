@@ -41,8 +41,10 @@ The skill uses one trigger with four internal modes:
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.0.0 --path skills/boring-backend
 ```
+
+Use `--ref main` only when intentionally testing unreleased changes.
 
 Manual install is also path-only: copy `skills/boring-backend` into your runtime's skills directory.
 
@@ -80,11 +82,13 @@ GitHub Actions runs the same entrypoint on CPython 3.14 for Ubuntu, macOS, and W
 
 Real agent evaluations are opt-in and stay outside CI. Adapters are trusted local programs; the harness validates its protocol but is not a sandbox. An adapter must not create background descendants or write outside the request's run directory. Timeout cleanup terminates the adapter process tree on a best-effort basis.
 
-The harness starts the adapter from the repository root, so relative adapter arguments resolve there. The adapter receives `--request` and `--response` JSON paths, must run the evaluated agent in the request's `paths.workspace`, and must send only the request's top-level `query` to that agent. It must not inspect the evaluation suite, labels, case ids, rationale, or expected result. Metrics from an adapter that violates these rules are untrusted. Activation, catalog reads, and usage must come from vendor traces or APIs and remain `null` when unavailable.
+The report `--output` may stay under `reports/`, but execution does not. By default the harness creates an auto-cleaned system temporary work root outside the repository. An explicit `--work-root` is retained for debugging and must be new or empty, separate from the report output, outside this repository, and free of same-name `.agents/skills/`, `.claude/skills/`, `.codex/skills/`, or `.gemini/config/skills/` ancestors. This prevents project or user skill copies from contaminating a no-skill baseline when they are discoverable from the work path.
 
-Case/trial blocks and per-block variant order are deterministically randomized from `--seed`; every variant in a block receives the same paired seed. The response object accepts `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), run-relative `artifacts`, and adapter `metadata`. Each usage value must be `null` or an integer from 0 through 9,007,199,254,740,991. The harness discards stdout, concurrently drains stderr while retaining at most a 2 KiB excerpt, limits JSON nesting to 100, reads at most 64 KiB plus one byte from the response, and accepts at most 32 declared artifact files totaling 16 MiB.
+The harness starts each adapter in its per-run work directory. Runner command arguments that name files relative to the repository root are resolved to absolute paths before launch. The adapter receives `--request` and `--response` JSON paths, must run the evaluated agent in the request's `paths.workspace`, and must send only the request's top-level `query` to that agent. It must enforce the request's `isolation` contract by disabling any same-name user, admin, managed, or otherwise preinstalled skill outside `allowed_skill_path`, and return its isolation method in the required response attestation. It must not inspect the evaluation suite, labels, case ids, rationale, or expected result. Metrics from an adapter that violates these rules are untrusted. Activation, catalog reads, and usage must come from vendor traces or APIs and remain `null` when unavailable.
 
-Each output includes the request/response run artifacts, bounded stderr excerpts, JSONL results, summary, and a manifest. The manifest records the Git commit and dirty state, a worktree/diff digest when dirty, the harness hash, skill hashes, and hashes for runner command arguments that resolve to files.
+Case/trial blocks and per-block variant order are deterministically randomized from `--seed`; every variant in a block receives the same paired seed. The response object accepts `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), run-relative `artifacts`, adapter `metadata`, and a required `isolation` attestation. The attestation must set `verified` to `true`, name a nonempty `method`, and report an empty `unexpected_same_name_skills` array; otherwise the run fails. Each usage value must be `null` or an integer from 0 through 9,007,199,254,740,991. The harness discards stdout, concurrently drains stderr while retaining at most a 2 KiB excerpt, limits JSON nesting to 100, reads at most 64 KiB plus one byte from the response, and accepts at most 32 declared artifact files totaling 16 MiB.
+
+Each report includes archived request/response files, bounded stderr excerpts, declared artifacts, JSONL results, summary, and a manifest. Undeclared workspace files and per-run runtime copies exist only for the lifetime of the isolated work root and are not copied into the report. The manifest records the work-root policy, Git commit and dirty state, a worktree/diff digest when dirty, the harness hash, skill hashes, and hashes for runner command arguments that resolve to files.
 
 ```text
 python scripts/run_skill_eval.py --output reports/eval/run-001 --trials 3 --seed 17 --variant current=skills/boring-backend --variant baseline --runner-exe python --runner-arg path/to/vendor_adapter.py --runner-meta vendor=example --runner-meta model=example
