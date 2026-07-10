@@ -24,4 +24,3 @@ Read this file only when the task touches latency, throughput, high-traffic endp
 - Does caching preserve correctness, authorization, and invalidation semantics?
 - Are p95/p99 latency, throughput, error rate, or saturation claims backed by measurement?
 - Is microbenchmarking requested and useful, or would it add cost without changing the decision?
-- Unbounded production-facing list endpoints are at least P3; escalate only when they violate a contract or threaten availability.

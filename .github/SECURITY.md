@@ -1,6 +1,6 @@
 # Security Policy
 
-Only the current `main` branch is supported until versioned releases exist.
+The current `main` branch and the latest published release are supported. Older releases do not receive security backports.
 
 ## Private Reporting
 

@@ -14,24 +14,26 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - 에이전트 작업 위생: 변경은 작게 유지하고, 가정은 명시하며, 가장 작은 작동 경로를 선택합니다. 성공 기준은 에이전트가 실제로 실행할 수 있는 명령으로 정의합니다.
 - SOLID와 YAGNI의 균형: 라우팅, 도메인 규칙, 영속성, DTO, 에러 매핑처럼 현재 계약에 필요한 책임은 분리합니다. 반대로 미래 확장을 위한 인터페이스, 팩토리, 전략 패턴, 플러그인 계층은 현재 필요하지 않으면 만들지 않습니다.
 
-의도한 장점은 트리거를 하나로 유지하면서도 내부 모드로 설계, 구현, 리뷰, 운영 증거 점검을 나누는 것입니다. 이렇게 하면 발견과 호출은 단순하게 유지하면서도 정확성, 보안, 데이터 무결성, 상태 코드, 성능, 운영 guardrail을 함께 확인할 수 있습니다.
+의도한 장점은 트리거를 하나로 유지하면서도 내부 모드로 설계, 구현, 리뷰를 나누는 것입니다. 이렇게 하면 발견과 호출은 단순하게 유지하면서도 정확성, 보안, 데이터 무결성, 상태 코드, 성능, 운영 guardrail을 함께 확인할 수 있습니다.
 
 ## Skill
 
 - `boring-backend`: 인증, 데이터 무결성, 멱등성, 동시성, 성능, 분산 환경 동작, 운영 리스크가 얽힌 API/service 작업을 설계, 구현, 리뷰할 때 사용합니다.
 
-이 스킬은 하나의 트리거 아래에서 네 가지 모드로 동작합니다.
+이 스킬은 하나의 트리거 아래에서 세 가지 모드로 동작합니다.
 
 - Design: 구현 전에 API 계약, 불변식, guard 전략, 트레이드오프, 필요한 증거 수준을 정리합니다.
 - Implementation: 범위를 통제하면서 API/service 코드를 구현하고, 테스트와 guard evidence를 남깁니다.
 - Review: P0-P4 기준으로 신뢰성, 보안, 데이터 무결성, 성능, 호환성, 운영 리스크를 점검합니다.
-- Production evidence: 로컬 테스트 증거와 load test, query plan, p95/p99 latency, saturation, rollout/rollback, observability 증거를 구분합니다.
+
+환경별 운영 증거를 명시적으로 요청한 경우에는 조건부 안전 reference를 사용하며, 이를 네 번째 개발 모드로 취급하지 않습니다.
 
 ## 구조
 
 - `skills/boring-backend/`: 원본 skill 패키지입니다.
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
+- `.codex-plugin/plugin.json`: runtime skill subtree와 분리된 플러그인 패키징 manifest입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
@@ -41,14 +43,14 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
 ```text
---repo dd3ok/boring-backend --ref v1.0.0 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.1.0 --path skills/boring-backend
 ```
-
-아직 릴리스하지 않은 변경을 의도적으로 시험할 때만 `--ref main`을 사용하세요.
 
 수동 설치도 경로 기준으로만 하면 됩니다. `skills/boring-backend` 폴더를 사용하는 런타임의 skills 디렉터리에 복사합니다.
 
-자주 쓰는 설치 위치는 다음과 같습니다.
+Path-only 설치가 직접 설치 경계입니다. `.codex-plugin/plugin.json`은 동일한 `skills/` tree를 Codex plugin marketplace용으로 패키징하지만, 이 저장소는 marketplace를 게시하지 않습니다. `agents/openai.yaml`은 skill metadata이지 plugin manifest가 아닙니다.
+
+Path-only 방식에서 자주 쓰는 로컬 설치 위치는 다음과 같습니다.
 
 | Runtime | 프로젝트 범위 | 사용자 범위 |
 |---|---|---|
@@ -76,18 +78,16 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-GitHub Actions에서는 같은 진입점을 Ubuntu, macOS, Windows의 CPython 3.14에서 실행하고, Ubuntu의 CPython 3.11에서도 실행합니다.
+GitHub Actions에서는 같은 진입점을 Ubuntu, macOS, Windows의 CPython 3.14에서 실행하고, Ubuntu의 CPython 3.11, 3.12, 3.13에서도 실행합니다.
 
 ## 평가
 
-에이전트 평가는 선택 사항이며 CI와 runtime skill 밖에서 수행합니다. 이 저장소는 범용 평가 harness나 벤더 adapter를 포함하지 않습니다.
+Runtime 지침이나 기대 출력이 바뀌면 behavior case를, discovery metadata나 activation 경계가 바뀌면 trigger case를 실행합니다. Cross-provider harness와 평가 CI는 선택 사항이며 이 저장소에는 포함하지 않습니다.
 
 - `validation/trigger-eval-cases.json`: 스킬을 직접 언급하지 않은 요청에서 activation 경계를 점검합니다.
-- `validation/forward-test-prompts.md`: 스킬을 명시적으로 선택한 뒤 동작 품질을 점검합니다.
-- `validation/experiment-fairness.md`: 현재 스킬을 no-skill 또는 이전 버전과 공정하게 비교할 때 따릅니다.
-
-평가는 수동으로 실행하거나 벤더가 제공하는 공식 평가·trace 도구를 사용하세요. Activation, catalog 사용량, 토큰 절감 효과는 벤더가 해당 telemetry를 제공할 때만 측정값으로 주장하고, 최종 답변 문구에서 추정하지 마세요. 반복 가능한 cross-provider 자동화가 필요해지면 스킬 패키지를 키우지 않도록 별도 평가 도구나 저장소로 분리하세요.
+- `validation/behavior-eval-cases.json`: 스킬을 명시적으로 선택한 뒤 사용하는 prompt, 입력, grader 기대값의 machine-readable 정본입니다.
+- `validation/experiment-fairness.md`: 격리, 채점, no-skill 또는 이전 버전과의 비교 규칙입니다.
 
 ## 라이선스
 
-MIT 라이선스를 적용합니다. 자세한 내용은 `LICENSE`를 확인하세요.
+MIT 라이선스를 적용합니다. `LICENSE`를 확인하세요. 설치 가능한 runtime subtree에도 같은 전문을 `skills/boring-backend/LICENSE`로 포함합니다.
