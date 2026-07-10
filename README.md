@@ -22,9 +22,9 @@ The skill uses one trigger with three internal modes:
 
 - Design: define contracts, invariants, guard strategy, tradeoffs, and evidence targets before implementation.
 - Implementation: make scoped API/service changes with tests and guard evidence.
-- Review: check code for P0-P4 reliability, security, data integrity, performance, compatibility, and operations risks.
+- Review: report reliability, security, data-integrity, performance, compatibility, and operations findings in impact order.
 
-Explicit environment-specific evidence requests use a conditional safety reference; they are not a fourth development mode.
+Explicit environment-specific evidence requests load a conditional safety reference before any invasive action.
 
 ## Layout
 
@@ -63,7 +63,7 @@ Common destination paths for the same folder:
 |---|---|---|
 | Codex / Agents | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
-| Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
+| Antigravity | `.agents/skills/boring-backend` | Product/version-specific; prefer project scope |
 
 Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, and `requirements-dev.txt` are repository maintenance files, not runtime skill contents.
 
@@ -89,7 +89,7 @@ GitHub Actions runs the same entrypoint on CPython 3.14 for Ubuntu, macOS, and W
 
 ## Evaluation
 
-Run behavior cases when runtime instructions or expected outputs change, and trigger cases when discovery metadata or activation boundaries change. Cross-provider harnesses and evaluation CI are optional and are not included.
+Use an external provider-specific runner for behavior cases when runtime instructions or expected outputs change, and for trigger cases when discovery metadata or activation boundaries change. This repository stores evaluation inputs and isolation rules, not a runner or generated results.
 
 - Use `validation/trigger-eval-cases.json` to check implicit activation boundaries.
 - Use `validation/behavior-eval-cases.json` as the canonical machine-readable prompts, inputs, and grader expectations after explicitly selecting the skill.

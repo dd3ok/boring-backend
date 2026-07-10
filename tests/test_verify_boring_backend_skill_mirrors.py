@@ -66,24 +66,11 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-        routing = "\n".join(
-            [
-                "# Routing",
-                "Evidence levels: L0, L1, L2, L3, L4.",
-                *(f"Route to `{name}`." for name in module.CATALOG_REFERENCES),
-                "",
-            ]
-        )
-        (references / "core-guard-routing.md").write_text(routing, encoding="utf-8")
         (references / "core-guard-catalog.md").write_text(
             (
                 "# Core Guards\n\n"
                 "Check idempotency, atomic concurrency, API status codes, and runnable tests.\n"
             ),
-            encoding="utf-8",
-        )
-        (references / "severity.md").write_text(
-            "# Severity\n\nRank findings P0, P1, P2, P3, and P4.\n",
             encoding="utf-8",
         )
         for name in module.REQUIRED_REFERENCES:
@@ -96,7 +83,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
         (base / "LICENSE").write_text(license_text, encoding="utf-8")
         return base
 
-    def test_source_package_accepts_structural_and_domain_invariants(self):
+    def test_source_package_accepts_structural_invariants(self):
         module = load_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -115,7 +102,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             skill_md = source / "SKILL.md"
             skill_md.write_text(
                 skill_md.read_text(encoding="utf-8")
-                + "Read `../outside/legacy.md`.\n",
+                + "Read `../outside/extra.md`.\n",
                 encoding="utf-8",
             )
             nested = source / "references" / "nested" / "extra.md"
@@ -136,8 +123,8 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             skill_md = source / "SKILL.md"
             skill_md.write_text(
                 skill_md.read_text(encoding="utf-8").replace(
-                    "references/core-guard-routing.md",
-                    "references\\core-guard-routing.md",
+                    "references/core-guard-catalog.md",
+                    "references\\core-guard-catalog.md",
                 ),
                 encoding="utf-8",
             )
@@ -202,26 +189,6 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
             self.assertTrue(any("missing required reference" in issue for issue in issues))
             self.assertTrue(any("not linked directly" in issue for issue in issues))
-
-    def test_domain_marker_validation_checks_evidence_levels_and_severity_scale(self):
-        module = load_module()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = self.write_source_package(root)
-            routing = source / "references" / "core-guard-routing.md"
-            routing.write_text("# Routing\n\nL0 and L1 only.\n", encoding="utf-8")
-            catalog = source / "references" / "core-guard-catalog.md"
-            catalog.write_text("# Core\n", encoding="utf-8")
-            severity = source / "references" / "severity.md"
-            severity.write_text("# Severity\n\nOnly P0 is documented.\n", encoding="utf-8")
-
-            issues: list[str] = []
-            module.validate_domain_markers(source, issues)
-
-            self.assertTrue(any("L4 evidence level" in issue for issue in issues))
-            self.assertTrue(any("routing does not cover" in issue for issue in issues))
-            self.assertTrue(any("idempotency guard" in issue for issue in issues))
-            self.assertTrue(any("P4 severity" in issue for issue in issues))
 
     def test_openai_metadata_requires_interface_and_skill_selection(self):
         module = load_module()

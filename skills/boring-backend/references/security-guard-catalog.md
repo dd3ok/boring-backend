@@ -1,6 +1,6 @@
 # Security Guard Catalog
 
-Read this file only when the task touches auth, roles, ownership, sensitive business flows, public input, field binding, secrets, logs, CORS/TLS, user-controlled URLs, or third-party API responses.
+Read this file only when the task touches authentication/authorization, roles, ownership, sensitive business flows, public field binding, server-owned fields, secrets, logs, CORS/TLS, user-controlled URLs, or third-party API responses.
 
 ## Implementation Lens
 
@@ -29,4 +29,4 @@ Read this file only when the task touches auth, roles, ownership, sensitive busi
 - Does any endpoint fetch a user-supplied URL or trust a third-party response without validation?
 - Does untrusted input reach SQL, NoSQL, search, path, header, template, expression, command, or shell interpreters unsafely?
 - Are CORS, debug endpoints, verbose errors, and legacy endpoints explicitly safe or out of scope?
-- Missing auth or ownership is P1 for public, multi-user, or protected APIs; otherwise require a trusted/local-only assumption.
+- Missing auth or ownership is a critical finding for public, multi-user, or protected APIs; otherwise require a trusted/local-only assumption.

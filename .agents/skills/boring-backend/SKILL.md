@@ -1,6 +1,6 @@
 ---
 name: boring-backend
-description: Use when API/service work involves auth, integrity, idempotency, concurrency, dependencies, migrations, compatibility, performance, or ops risk; not for UI or non-contract docs edits.
+description: Design, implement, or review API/service reliability changes involving authentication or authorization, data integrity, idempotency, concurrency, external dependencies, migrations, compatibility, performance, or operational risk. Skip UI-only, metadata-only, trivial refactor, and non-contract prose work.
 license: MIT
 ---
 
@@ -10,44 +10,45 @@ Boring Backend means deliberately ordinary service code: protect real invariants
 
 ## Modes
 
-- Design: before implementation, define contract, risk, minimal boundaries, guard evidence, and exclusions.
-- Implementation: write the narrowest framework-native code that satisfies the contract and verifies high-risk guards.
-- Review: find P0/P1/P2 before architecture polish. Review-only work never edits; patch only in an authorized fix run.
+- Design: before implementation, return the contract, material risks, minimal boundaries, guard and evidence plan, assumptions, and exclusions.
+- Implementation: write the narrowest framework-native code that satisfies the contract and verifies high-risk guards; report changed files, commands/results, choices, and gaps.
+- Review: report findings first, ordered by impact and grounded in evidence. Review-only work never edits; patch only when the user requests a fix.
 
 ## Core Rule
 
-Correctness, security, integrity, status codes, and runnable evidence override brevity, SOLID, YAGNI, and style. Use SOLID for real boundaries and YAGNI against speculative seams.
+Correctness, security, integrity, status codes, and runnable evidence take precedence over brevity or architecture preferences. Add boundaries only where they own a current invariant or integration; avoid abstractions for hypothetical variants.
 
 ## Workflow
 
-1. Classify the mode from the user request; do not create a separate design artifact unless requested or risk demands it.
+1. Classify the mode from the user request. Do not create a separate design file unless the user requests one; keep necessary planning in the response.
 2. Read the request as a contract: behavior, status codes, data rules, security boundary, persistence, external calls, success criteria, and explicit guards.
-3. For explicitly requested environment-specific L4 evidence, read `references/production-evidence.md` first. If its permission gate is incomplete, stop without loading catalogs or running actions.
-4. Read `references/core-guard-routing.md`, then load only the catalogs that match the remaining risk.
-5. Resolve material correctness, security, integrity, and contract risks before package structure or style. Before any P0-P4 label appears in output, read `references/severity.md`; otherwise do not load it.
+3. For explicitly requested environment-specific production evidence, read [production evidence](references/production-evidence.md) first. Do not perform invasive actions until its permission gate is complete; continue available read-only inspection when useful.
+4. Route only material risks with the table below. Load a linked catalog only when it can change implementation, evidence, or release caution.
+5. Resolve material correctness, security, integrity, and contract risks before package structure or style.
 6. Choose the smallest conventional boundary that owns each invariant: route/controller, service/use-case, repository/DAO, DTO/schema, transaction, or error mapping.
 7. Map each relevant guard to evidence, a finding, or a named local-only gap. Do not claim production readiness from local smoke tests.
-8. Verify with the strongest practical evidence. Scale output and evidence detail to task size and risk; explain only non-obvious catalog choices.
+8. Use the least costly evidence strong enough for the claim: static, unit, integration, risk-specific, then environment evidence as required. Scale detail to task size and risk.
 
-Catalog targets; load only when routed: `references/core-guard-catalog.md`, `references/security-guard-catalog.md`, `references/data-lifecycle-guard-catalog.md`, `references/performance-guard-catalog.md`, `references/resilience-guard-catalog.md`, `references/operations-guard-catalog.md`, and `references/compatibility-governance-guard-catalog.md`.
+## Risk Routing
 
-## Mode Details
+| Trigger | Read |
+|---|---|
+| Mutable API behavior or status contract, state, idempotency, concurrency, pagination, or data integrity | [core guard catalog](references/core-guard-catalog.md) |
+| Authentication/authorization, tenant/owner boundary, sensitive-flow abuse, public field binding, sensitive data/logging, CORS/TLS, user-controlled URLs, untrusted responses, or interpreter inputs | [security guard catalog](references/security-guard-catalog.md) |
+| Durable schema/model, constraints/indexes, migrations/backfills, isolation/locking, replication, retention/deletion, audit, or restore | [data lifecycle catalog](references/data-lifecycle-guard-catalog.md) |
+| Performance claim, high-traffic path, large list/search/export/bulk, query plan/index/N+1/pool/payload, or cache optimization | [performance catalog](references/performance-guard-catalog.md) |
+| Runtime dependencies, retries/timeouts, queues/events, distributed locks, cache consistency, quotas, backpressure, or overload | [resilience catalog](references/resilience-guard-catalog.md) |
+| Package supply chain, production readiness, observability/SLOs, rollout/rollback, incident readiness, or cost/resource risk | [operations catalog](references/operations-guard-catalog.md) |
+| Existing API/schema evolution, versioning/deprecation, field/type/nullability/enum changes, client semantics, or SDKs | [compatibility catalog](references/compatibility-governance-guard-catalog.md) |
 
-Scale mode output to material items:
-
-- Design: contract, P0-P2 risks, minimal boundaries, guard plan, assumptions, and exclusions.
-
-- Implementation: changed files, evidence, commands/results, architecture choices, and gaps.
-
-- Review: findings-first P0-P4 findings or gaps, evidence, and permitted fixes.
+If multiple rows match, load only the catalogs needed to decide the material risk. Core owns current endpoint behavior; compatibility owns evolution of externally visible behavior.
 
 ## Fix Rules
 
-For an authorized behavior fix, add and run a failing-then-passing regression test when feasible. If that is infeasible, use the strongest practical evidence and name the reason and residual gap. Review-only work must not add or modify tests; an observed pre-existing RED test is evidence, not a fix.
+When the user requests a behavior fix, add and run a failing-then-passing regression test when feasible. If that is infeasible, use the strongest practical evidence and name the reason and residual gap. Review-only work must not add or modify tests; an observed pre-existing RED test is evidence, not a fix.
 
 Patch the narrowest code path that owns the invariant. Keep unrelated refactors out. Preserve public API unless the contract requires change.
 
 ## Skip Conditions
 
 Do not use this skill for pure copy edits, UI-only style changes, trivial local refactors, metadata-only edits, or docs-only work that cannot affect state, auth, API contracts, external calls, persistence, performance, distributed behavior, or operational risk.
-

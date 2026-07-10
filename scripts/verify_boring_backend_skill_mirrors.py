@@ -20,7 +20,6 @@ MIRRORS = (
 )
 
 REQUIRED_REFERENCES = (
-    "core-guard-routing.md",
     "core-guard-catalog.md",
     "security-guard-catalog.md",
     "data-lifecycle-guard-catalog.md",
@@ -28,11 +27,7 @@ REQUIRED_REFERENCES = (
     "resilience-guard-catalog.md",
     "operations-guard-catalog.md",
     "compatibility-governance-guard-catalog.md",
-    "severity.md",
     "production-evidence.md",
-)
-CATALOG_REFERENCES = tuple(
-    name for name in REQUIRED_REFERENCES if name.endswith("-guard-catalog.md")
 )
 
 
@@ -189,75 +184,6 @@ def validate_reference_structure(base: Path, issues: list[str]) -> None:
                 fail(f"reference is not linked directly from {display_path(skill_md)}: {relative}", issues)
 
 
-def require_concepts(
-    text: str,
-    concepts: tuple[tuple[str, tuple[str, ...]], ...],
-    path: Path,
-    issues: list[str],
-) -> None:
-    lowered = text.lower()
-    for label, alternatives in concepts:
-        if not any(term in lowered for term in alternatives):
-            fail(f"missing {label} concept in {display_path(path)}", issues)
-
-
-def validate_domain_markers(base: Path, issues: list[str]) -> None:
-    """Check stable coverage markers; external behavior evaluation owns semantics."""
-    skill_md = base / "SKILL.md"
-    skill_text = skill_md.read_text(encoding="utf-8")
-    require_concepts(
-        skill_text,
-        (
-            ("API/service scope", ("api", "service")),
-            ("authorization or security risk", ("auth", "security")),
-            ("data-integrity risk", ("integrity", "invariant")),
-            ("idempotency risk", ("idempoten",)),
-            ("concurrency risk", ("concurr", "race condition")),
-            ("non-backend exclusion", ("ui-only", "not for ui", "docs-only", "copy edits")),
-        ),
-        skill_md,
-        issues,
-    )
-    for mode in ("design", "implementation", "review"):
-        if mode not in skill_text.lower():
-            fail(f"missing {mode!r} mode in {display_path(skill_md)}", issues)
-
-    routing = base / "references" / "core-guard-routing.md"
-    if routing.is_file():
-        routing_text = routing.read_text(encoding="utf-8").lower()
-        for level in range(5):
-            if re.search(rf"\bl{level}\b", routing_text) is None:
-                fail(f"missing L{level} evidence level in {display_path(routing)}", issues)
-        for catalog in CATALOG_REFERENCES:
-            if catalog not in routing_text:
-                fail(f"routing does not cover {catalog} in {display_path(routing)}", issues)
-
-    core_catalog = base / "references" / "core-guard-catalog.md"
-    if core_catalog.is_file():
-        catalog_text = core_catalog.read_text(encoding="utf-8")
-        require_concepts(
-            catalog_text,
-            (
-                ("idempotency guard", ("idempoten",)),
-                ("concurrency guard", ("concurr", "atomic", "lock")),
-                ("API status contract", ("status code", "status-code")),
-                ("runnable evidence", ("test", "evidence")),
-            ),
-            core_catalog,
-            issues,
-        )
-
-    severity_reference = base / "references" / "severity.md"
-    if severity_reference.is_file():
-        severity_text = severity_reference.read_text(encoding="utf-8").lower()
-        for severity in range(5):
-            if re.search(rf"\bp{severity}\b", severity_text) is None:
-                fail(
-                    f"missing P{severity} severity in {display_path(severity_reference)}",
-                    issues,
-                )
-
-
 def validate_runtime_license(base: Path, root: Path, issues: list[str]) -> None:
     root_license = root / "LICENSE"
     runtime_license = base / "LICENSE"
@@ -279,7 +205,6 @@ def check_source_package(base: Path, issues: list[str], root: Path = ROOT) -> No
 
     validate_openai_yaml(base, issues)
     validate_reference_structure(base, issues)
-    validate_domain_markers(base, issues)
     validate_runtime_license(base, root, issues)
 
 

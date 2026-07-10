@@ -70,6 +70,12 @@
       "rationale": "This is a contract and compatibility change even if the edited source is an API description."
     },
     {
+      "id": "mixed-ui-api-authorization",
+      "query": "Update the admin screen and its backend endpoint so only organization owners can suspend a member; include direct API authorization tests.",
+      "should_trigger": true,
+      "rationale": "The task includes UI work but materially changes a backend authorization boundary."
+    },
+    {
       "id": "ui-auth-error-copy",
       "query": "Change the authorization error text in the web UI from 'Forbidden' to 'You do not have access'. No API behavior changes are needed.",
       "should_trigger": false,
