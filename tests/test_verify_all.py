@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -23,23 +24,10 @@ class VerifyAllTests(unittest.TestCase):
 
         commands = module.build_commands(REPO)
 
-        self.assertEqual(len(commands), 3)
+        self.assertEqual(len(commands), 2)
         self.assertTrue(all(command.args[0] == sys.executable for command in commands))
         self.assertEqual(commands[0].args[1:], [str(REPO / "scripts" / "verify_boring_backend_skill_mirrors.py")])
         self.assertEqual(commands[1].args[1:], ["-m", "unittest", "discover", "-s", str(REPO / "tests")])
-        self.assertEqual(
-            commands[2].args[1:],
-            [
-                "-B",
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                str(REPO / "reports" / "boring-backend-forward-test-implementation"),
-                "-p",
-                "test_*.py",
-            ],
-        )
 
     def test_main_returns_first_failing_command_code(self):
         module = load_module()
@@ -48,7 +36,6 @@ class VerifyAllTests(unittest.TestCase):
             run.side_effect = [
                 mock.Mock(returncode=0),
                 mock.Mock(returncode=7),
-                mock.Mock(returncode=0),
             ]
 
             result = module.main()
@@ -67,21 +54,72 @@ class VerifyAllTests(unittest.TestCase):
 
     def test_ci_verifies_supported_platforms_with_declared_dependencies(self):
         workflow_path = REPO / ".github" / "workflows" / "verify.yml"
+        dependabot_path = REPO / ".github" / "dependabot.yml"
         requirements_path = REPO / "requirements-dev.txt"
         self.assertTrue(workflow_path.exists(), "missing cross-platform verification workflow")
+        self.assertTrue(dependabot_path.exists(), "missing automated dependency updates")
         self.assertTrue(requirements_path.exists(), "missing development dependency manifest")
         workflow = workflow_path.read_text(encoding="utf-8")
+        dependabot = dependabot_path.read_text(encoding="utf-8")
         requirements = requirements_path.read_text(encoding="utf-8")
 
         for runner in ("ubuntu-latest", "macos-latest", "windows-latest"):
             with self.subTest(runner=runner):
                 self.assertIn(runner, workflow)
-        self.assertIn("actions/checkout@v6", workflow)
-        self.assertIn("actions/setup-python@v6", workflow)
+        self.assertIn("push:\n    branches: [main]", workflow)
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("concurrency:", workflow)
+        self.assertIn("cancel-in-progress: true", workflow)
+        self.assertRegex(workflow, r"(?m)^[ \t]+- uses: actions/checkout@[0-9a-f]{40}(?:[ \t]+# .+)?$")
+        self.assertRegex(workflow, r"(?m)^[ \t]+- uses: actions/setup-python@[0-9a-f]{40}(?:[ \t]+# .+)?$")
         self.assertIn("python-version: '3.13'", workflow)
         self.assertIn("python -m pip install -r requirements-dev.txt", workflow)
         self.assertIn("python scripts/verify_all.py", workflow)
-        self.assertIn("PyYAML", requirements)
+        self.assertIn('package-ecosystem: "github-actions"', dependabot)
+        self.assertIn('package-ecosystem: "pip"', dependabot)
+        requirement_lines = [
+            line.strip() for line in requirements.splitlines() if line.strip() and not line.startswith("#")
+        ]
+        pyyaml_pins = [line for line in requirement_lines if line.lower().startswith("pyyaml")]
+        self.assertEqual(len(pyyaml_pins), 1)
+        self.assertRegex(pyyaml_pins[0], r"\APyYAML==[0-9]+(?:\.[0-9]+)+(?:[A-Za-z0-9.+-]*)\Z")
+
+    def test_public_package_has_license_and_no_stale_forward_test_artifacts(self):
+        self.assertTrue((REPO / "LICENSE").exists())
+        self.assertTrue((REPO / "reports" / ".gitkeep").exists())
+        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-design.md").exists())
+        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-implementation.md").exists())
+        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-review.md").exists())
+        self.assertFalse((REPO / "reports" / "boring-backend-forward-test-implementation").exists())
+
+    def test_evaluation_assets_stay_external_and_cover_trigger_boundaries(self):
+        fairness_path = REPO / "validation" / "experiment-fairness.md"
+        trigger_path = REPO / "validation" / "trigger-eval-cases.json"
+        runtime_root = REPO / "skills" / "boring-backend"
+
+        self.assertTrue(fairness_path.exists())
+        self.assertTrue(trigger_path.exists())
+        self.assertFalse((runtime_root / "references" / "experiment-reporting.md").exists())
+        self.assertTrue((runtime_root / "references" / "handoff-reporting.md").exists())
+
+        fairness = fairness_path.read_text(encoding="utf-8").lower()
+        for term in ("clean context", "same prompt", "postmortem traps", "pre-registered guards"):
+            with self.subTest(fairness_term=term):
+                self.assertIn(term, fairness)
+
+        data = json.loads(trigger_path.read_text(encoding="utf-8"))
+        cases = data["cases"]
+        ids = [case["id"] for case in cases]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertGreaterEqual(sum(case["should_trigger"] is True for case in cases), 8)
+        self.assertGreaterEqual(sum(case["should_trigger"] is False for case in cases), 8)
+        for case in cases:
+            with self.subTest(case=case["id"]):
+                self.assertIsInstance(case["should_trigger"], bool)
+                self.assertTrue(case["query"].strip())
+                self.assertTrue(case["rationale"].strip())
+                self.assertNotIn("$boring-backend", case["query"])
+                self.assertNotIn("boring-backend", case["query"].lower())
 
 
 if __name__ == "__main__":

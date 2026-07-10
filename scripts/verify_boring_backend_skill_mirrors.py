@@ -86,7 +86,7 @@ def validate_skill_frontmatter(base: Path, issues: list[str]) -> None:
     if data is None:
         return
 
-    allowed_keys = {"name", "description", "license", "allowed-tools", "metadata"}
+    allowed_keys = {"name", "description", "license", "compatibility", "allowed-tools", "metadata"}
     extra_keys = sorted(set(data) - allowed_keys)
     if extra_keys:
         fail(f"extra frontmatter keys {extra_keys!r} in {display_path(skill_md)}", issues)
@@ -96,7 +96,7 @@ def validate_skill_frontmatter(base: Path, issues: list[str]) -> None:
         fail(f"missing string frontmatter name in {display_path(skill_md)}", issues)
     elif name != base.name:
         fail(f"frontmatter name {name!r} does not match folder {base.name!r} in {display_path(skill_md)}", issues)
-    elif not re.fullmatch(r"[a-z0-9-]+", name):
+    elif len(name) > 64 or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
         fail(f"invalid frontmatter name {name!r} in {display_path(skill_md)}", issues)
 
     description = data.get("description")
@@ -104,6 +104,25 @@ def validate_skill_frontmatter(base: Path, issues: list[str]) -> None:
         fail(f"missing string frontmatter description in {display_path(skill_md)}", issues)
     elif len(description.strip()) > 200:
         fail(f"description too long ({len(description.strip())}) in {display_path(skill_md)}", issues)
+
+    license_value = data.get("license")
+    if "license" in data and (not isinstance(license_value, str) or not license_value.strip()):
+        fail(f"frontmatter license must be a non-empty string in {display_path(skill_md)}", issues)
+
+    compatibility = data.get("compatibility")
+    if "compatibility" in data:
+        if not isinstance(compatibility, str) or not compatibility.strip():
+            fail(f"frontmatter compatibility must be a non-empty string in {display_path(skill_md)}", issues)
+        elif len(compatibility.strip()) > 500:
+            fail(f"frontmatter compatibility exceeds 500 characters in {display_path(skill_md)}", issues)
+
+    allowed_tools = data.get("allowed-tools")
+    if "allowed-tools" in data and (not isinstance(allowed_tools, str) or not allowed_tools.strip()):
+        fail(f"frontmatter allowed-tools must be a non-empty string in {display_path(skill_md)}", issues)
+
+    metadata = data.get("metadata")
+    if "metadata" in data and not isinstance(metadata, dict):
+        fail(f"frontmatter metadata must be a mapping in {display_path(skill_md)}", issues)
 
 
 def validate_openai_yaml(base: Path, issues: list[str]) -> None:
@@ -210,22 +229,22 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             fail(f"missing operational escalation rule in {display_path(skill_md)}", issues)
         if "core-guard-routing.md" not in skill_text:
             fail(f"missing core-guard-routing.md route in {display_path(skill_md)}", issues)
-        if "experiment-reporting.md" not in skill_text:
-            fail(f"missing experiment-reporting.md route in {display_path(skill_md)}", issues)
+        if "handoff-reporting.md" not in skill_text:
+            fail(f"missing handoff-reporting.md route in {display_path(skill_md)}", issues)
+        if "experiment-reporting.md" in skill_text:
+            fail(f"stale experiment-reporting.md route in {display_path(skill_md)}", issues)
         if "subagent-delegation.md" not in skill_text:
             fail(f"missing subagent-delegation.md route in {display_path(skill_md)}", issues)
-        if "token-reporting.md" not in skill_text:
-            fail(f"missing token-reporting.md route in {display_path(skill_md)}", issues)
         subagent_route = any(
             "subagent-delegation.md" in line and "ordinary subagent delegation" in line.lower()
             for line in skill_text.splitlines()
         )
         if not subagent_route:
             fail(f"missing ordinary subagent route to subagent-delegation.md in {display_path(skill_md)}", issues)
-        if any("experiment-reporting.md" in line and "subagent" in line.lower() for line in skill_text.splitlines()):
+        if any("handoff-reporting.md" in line and "subagent" in line.lower() for line in skill_text.splitlines()):
             fail(f"ordinary subagents need a separate subagent delegation reference in {display_path(skill_md)}", issues)
         if "reports/handoffs/" in skill_text or "handoff-first" in skill_text:
-            fail(f"handoff detail belongs in references/experiment-reporting.md, not {display_path(skill_md)}", issues)
+            fail(f"handoff detail belongs in references/handoff-reporting.md, not {display_path(skill_md)}", issues)
 
     guard_catalog = base / "references" / "core-guard-catalog.md"
     if guard_catalog.exists():
@@ -234,7 +253,7 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             fail(f"core P3 severity lacks performance/ops risk in {display_path(guard_catalog)}", issues)
         guard_lower = guard_text.lower()
         if "first-run experiments" in guard_lower or "pre-register" in guard_lower:
-            fail(f"experiment fairness belongs in experiment-reporting.md, not {display_path(guard_catalog)}", issues)
+            fail(f"experiment fairness belongs outside runtime, not {display_path(guard_catalog)}", issues)
 
     core_routing = base / "references" / "core-guard-routing.md"
     if core_routing.exists():
@@ -259,12 +278,9 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         for label in ("L0 Static", "L1 Unit/domain", "L2 Integration", "L3 Risk-specific", "L4 Production-readiness"):
             if label not in routing_text:
                 fail(f"missing evidence level {label!r} in {display_path(core_routing)}", issues)
-        if "## Token Reporting" in routing_text:
-            fail(f"conditional token reporting belongs in token-reporting.md, not {display_path(core_routing)}", issues)
-
-    experiment_reporting = base / "references" / "experiment-reporting.md"
-    if experiment_reporting.exists():
-        reporting_text = experiment_reporting.read_text(encoding="utf-8")
+    handoff_reporting = base / "references" / "handoff-reporting.md"
+    if handoff_reporting.exists():
+        reporting_text = handoff_reporting.read_text(encoding="utf-8")
         reporting_lower = reporting_text.lower()
         required_groups = {
             "handoff index": ("handoff index", "reports/handoffs/"),
@@ -275,7 +291,6 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
                 "evidence_path",
                 "command_exit",
                 "known_gap",
-                "token_usage",
             ),
             "handoff-first fallback": (
                 "handoff-first",
@@ -285,13 +300,12 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
                 "cited evidence",
             ),
             "delta output": ("delta", "claim_id"),
-            "experiment fairness": ("first-run experiments", "postmortem traps", "pre-register", "variant"),
         }
         for group, terms in required_groups.items():
             missing = [term for term in terms if term not in reporting_lower]
             if missing:
                 fail(
-                    f"missing experiment reporting {group}: {missing!r} in {display_path(experiment_reporting)}",
+                    f"missing handoff reporting {group}: {missing!r} in {display_path(handoff_reporting)}",
                     issues,
                 )
         fallback_lines = [line for line in reporting_lower.splitlines() if "full first report" in line]
@@ -304,23 +318,23 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             for line in fallback_lines
         ):
             fail(
-                f"missing P0-P2-only full-report fallback in {display_path(experiment_reporting)}",
+                f"missing P0-P2-only full-report fallback in {display_path(handoff_reporting)}",
                 issues,
             )
         if "p0-p2-relevant" in reporting_lower:
             fail(
-                f"evidence-gated handoff fallback must not open the full report for severity alone in {display_path(experiment_reporting)}",
+                f"evidence-gated handoff fallback must not open the full report for severity alone in {display_path(handoff_reporting)}",
                 issues,
             )
         if "subagent prompt boundary" in reporting_lower or (
             "subagent" in reporting_lower and "allowed catalogs" in reporting_lower
         ):
             fail(
-                f"subagent prompt boundaries belong in subagent-delegation.md, not {display_path(experiment_reporting)}",
+                f"subagent prompt boundaries belong in subagent-delegation.md, not {display_path(handoff_reporting)}",
                 issues,
             )
     else:
-        fail(f"missing {display_path(experiment_reporting)}", issues)
+        fail(f"missing {display_path(handoff_reporting)}", issues)
 
     subagent_delegation = base / "references" / "subagent-delegation.md"
     if subagent_delegation.exists():
@@ -336,7 +350,12 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             "prior reports",
             "transcripts",
             "catalog text",
-            "token_usage",
+            "raw logs",
+            "file:line",
+            "command exits",
+            "evidence paths",
+            "known gaps",
+            "on-demand",
         )
         missing = [term for term in required_terms if term not in subagent_lower]
         if missing:
@@ -348,28 +367,6 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
             fail(f"subagent delegation reference exceeds 70 words: {display_path(subagent_delegation)}", issues)
     else:
         fail(f"missing {display_path(subagent_delegation)}", issues)
-
-    token_reporting = base / "references" / "token-reporting.md"
-    if token_reporting.exists():
-        token_text = token_reporting.read_text(encoding="utf-8")
-        token_lower = token_text.lower()
-        required_terms = (
-            "total_tokens",
-            "input_tokens",
-            "cached_input_tokens",
-            "cache_write_tokens",
-            "noncached_input_tokens = input - cached",
-            "output_tokens",
-            "reasoning_output_tokens",
-            "do not add",
-        )
-        missing = [term for term in required_terms if term not in token_lower]
-        if missing:
-            fail(f"missing token reporting guidance {missing!r} in {display_path(token_reporting)}", issues)
-        if len(token_text.split()) > 70:
-            fail(f"token reporting reference exceeds 70 words: {display_path(token_reporting)}", issues)
-    else:
-        fail(f"missing {display_path(token_reporting)}", issues)
 
     if references.exists():
         if not core_routing.exists():
@@ -384,18 +381,36 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
                 fail(f"runtime catalog contains Learning Feedback Lens in {display_path(ref_file)}", issues)
             if "Learning Feedback Prompt" in ref_text:
                 fail(f"Learning Feedback Prompt must not be in runtime references: {display_path(ref_file)}", issues)
+            ref_lower = ref_text.lower()
+            if any(term in ref_lower for term in ("first-run experiments", "postmortem traps", "pre-register")):
+                fail(f"experiment fairness belongs outside runtime, not {display_path(ref_file)}", issues)
 
     runtime_forward = base / "references" / "forward-test-prompts.md"
     if runtime_forward.exists():
         fail(f"forward-test-prompts.md belongs outside runtime references: {display_path(runtime_forward)}", issues)
+    runtime_experiment = base / "references" / "experiment-reporting.md"
+    if runtime_experiment.exists():
+        fail(f"experiment-reporting.md belongs outside runtime references: {display_path(runtime_experiment)}", issues)
+    runtime_fairness = base / "references" / "experiment-fairness.md"
+    if runtime_fairness.exists():
+        fail(f"experiment-fairness.md belongs outside runtime references: {display_path(runtime_fairness)}", issues)
 
     corpus = "\n".join(corpus_parts)
     if "production-evidence run" not in corpus:
         fail(f"missing production-evidence run guidance in {display_path(base)}", issues)
-    if "noncached_input_tokens" not in corpus:
-        fail(f"missing noncached_input_tokens token reporting guidance in {display_path(base)}", issues)
-    if "cache_write_tokens" not in corpus:
-        fail(f"missing cache_write_tokens token reporting guidance in {display_path(base)}", issues)
+    for term in (
+        "token telemetry",
+        "token_usage",
+        "cached_input_tokens",
+        "cache_write_tokens",
+        "noncached_input_tokens",
+        "reasoning_output_tokens",
+    ):
+        if term in corpus:
+            fail(
+                f"runtime token accounting {term!r} belongs in external evaluation tooling, not {display_path(base)}",
+                issues,
+            )
     if "reports/handoffs/" not in corpus:
         fail(f"missing implementation handoff guidance in {display_path(base)}", issues)
     if "handoff-first" not in corpus:
