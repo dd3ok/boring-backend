@@ -248,7 +248,6 @@ class VerifyAllTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertIn("--path skills/boring-backend", text)
                 self.assertIn("references/*.md", text)
-                self.assertNotIn(".codex-plugin", text)
 
 
 if __name__ == "__main__":

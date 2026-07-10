@@ -42,7 +42,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
 ```text
---repo dd3ok/boring-backend --ref v1.1.1 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.0 --path skills/boring-backend
 ```
 
 설치 대상에는 완전한 runtime 패키지만 들어 있습니다.

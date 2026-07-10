@@ -40,7 +40,7 @@ Explicit environment-specific evidence requests load a conditional safety refere
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --ref v1.1.1 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.0 --path skills/boring-backend
 ```
 
 The install target contains the complete runtime package:

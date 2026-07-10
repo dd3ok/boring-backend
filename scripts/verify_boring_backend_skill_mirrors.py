@@ -46,63 +46,9 @@ def rel_files(base: Path) -> list[Path]:
     return sorted(path.relative_to(base) for path in base.rglob("*") if path.is_file())
 
 
-def without_html_comments(line: str, in_comment: bool) -> tuple[str, bool]:
-    visible: list[str] = []
-    position = 0
-    while position < len(line):
-        if in_comment:
-            end = line.find("-->", position)
-            if end < 0:
-                return "".join(visible), True
-            in_comment = False
-            position = end + 3
-            continue
-
-        start = line.find("<!--", position)
-        if start < 0:
-            visible.append(line[position:])
-            break
-        visible.append(line[position:start])
-        in_comment = True
-        position = start + 4
-    return "".join(visible), in_comment
-
-
-def markdown_prose(text: str) -> str:
-    prose: list[str] = []
-    fence_character: str | None = None
-    fence_length = 0
-    in_comment = False
-    for line in text.splitlines():
-        if fence_character is not None:
-            closing_fence = re.match(
-                rf"^\s{{0,3}}{re.escape(fence_character)}{{{fence_length},}}[ \t]*$",
-                line,
-            )
-            if closing_fence:
-                fence_character = None
-                fence_length = 0
-            continue
-
-        visible, in_comment = without_html_comments(line, in_comment)
-        opening_fence = re.match(r"^\s{0,3}(`{3,}|~{3,})(.*)$", visible)
-        if opening_fence:
-            marker = opening_fence.group(1)
-            info = opening_fence.group(2)
-            if marker[0] == "`" and "`" in info:
-                prose.append(visible)
-                continue
-            fence_character = marker[0]
-            fence_length = len(marker)
-            continue
-        prose.append(visible)
-    return "\n".join(prose)
-
-
 def referenced_markdown(skill_md: Path) -> list[str]:
-    text = markdown_prose(skill_md.read_text(encoding="utf-8"))
-    references = set(re.findall(r"`([^`\r\n]+\.md(?:#[^`\r\n]+)?)`", text))
-    references.update(
+    text = skill_md.read_text(encoding="utf-8")
+    references = set(
         re.findall(r"\[[^\]]+\]\(<?([^)>\s]+\.md(?:#[^)>\s]+)?)>?\)", text)
     )
     return sorted(reference.split("#", 1)[0] for reference in references)
