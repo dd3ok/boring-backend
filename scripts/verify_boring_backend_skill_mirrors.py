@@ -217,7 +217,7 @@ def validate_boring_backend_semantics(base: Path, issues: list[str]) -> None:
         if "token-reporting.md" not in skill_text:
             fail(f"missing token-reporting.md route in {display_path(skill_md)}", issues)
         subagent_route = any(
-            "subagent-delegation.md" in line and "subagent" in line.lower() and "delegat" in line.lower()
+            "subagent-delegation.md" in line and "ordinary subagent delegation" in line.lower()
             for line in skill_text.splitlines()
         )
         if not subagent_route:

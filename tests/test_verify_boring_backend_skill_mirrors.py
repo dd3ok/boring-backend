@@ -28,7 +28,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
         self.assertIn("references/subagent-delegation.md", skill_md)
         self.assertTrue(subagent_path.exists())
-        self.assertNotIn("Subagent Prompt Boundary", experiment_text)
+        self.assertNotIn("subagent prompt boundary", experiment_text.lower())
         self.assertLessEqual(len(subagent_path.read_text(encoding="utf-8").split()), 70)
 
     def test_runtime_routes_token_telemetry_out_of_core_routing(self):
@@ -89,6 +89,25 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             module.validate_boring_backend_semantics(base, issues)
 
             self.assertTrue(any("separate subagent delegation reference" in issue for issue in issues))
+
+    def test_semantics_requires_an_explicit_ordinary_subagent_route(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+            base = Path(tmp) / "boring-backend"
+            self.write_minimal_skill(base)
+            skill_md = base / "SKILL.md"
+            skill_md.write_text(
+                skill_md.read_text(encoding="utf-8").replace(
+                    "Read `references/subagent-delegation.md` before ordinary subagent delegation.",
+                    "Reference: `references/subagent-delegation.md`.",
+                ),
+                encoding="utf-8",
+            )
+
+            issues: list[str] = []
+            module.validate_boring_backend_semantics(base, issues)
+
+            self.assertTrue(any("missing ordinary subagent route" in issue for issue in issues))
 
     def write_minimal_skill(self, base: Path, skill: str = "boring-backend") -> None:
         references = base / "references"
