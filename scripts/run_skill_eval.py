@@ -22,6 +22,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from collections import Counter
@@ -32,7 +33,7 @@ from typing import Any, BinaryIO, NamedTuple
 
 ROOT = Path(__file__).resolve().parents[1]
 HARNESS_PATH = Path(__file__).resolve()
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 STDERR_EXCERPT_LIMIT = 2048
 RESPONSE_BYTE_LIMIT = 64 * 1024
 JSON_DEPTH_LIMIT = 100
@@ -43,7 +44,14 @@ PROCESS_TERMINATE_GRACE_SECONDS = 1.0
 STDERR_DRAIN_GRACE_SECONDS = 1.0
 WINDOWS_REPARSE_POINT_ATTRIBUTE = 0x400
 VARIANT_NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
-RESPONSE_FIELDS = {"activation", "catalogs", "usage", "artifacts", "metadata"}
+RESPONSE_FIELDS = {"activation", "catalogs", "usage", "artifacts", "metadata", "isolation"}
+ISOLATION_FIELDS = {"verified", "method", "unexpected_same_name_skills"}
+DISCOVERY_SKILL_ROOTS = (
+    Path(".agents/skills"),
+    Path(".claude/skills"),
+    Path(".codex/skills"),
+    Path(".gemini/config/skills"),
+)
 
 
 class EvalError(Exception):
@@ -124,6 +132,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="JSON evaluation suite (defaults to validation/trigger-eval-cases.json)",
     )
     parser.add_argument("--output", type=Path, required=True, help="new or empty report directory")
+    parser.add_argument(
+        "--work-root",
+        type=Path,
+        help=(
+            "new or empty execution directory outside the repository and same-name "
+            "skill discovery ancestors; defaults to an auto-cleaned system temp directory"
+        ),
+    )
     parser.add_argument("--trials", type=int, default=1, help="trials per case and variant")
     parser.add_argument("--seed", type=int, default=0, help="root seed for deterministic run seeds")
     parser.add_argument(
@@ -180,6 +196,19 @@ def parse_runner_command(raw: str) -> list[str]:
     return command
 
 
+def resolve_runner_file_arguments(command: list[str]) -> list[str]:
+    resolved = []
+    for argument in command:
+        candidate = Path(argument).expanduser()
+        if not candidate.is_absolute():
+            candidate = ROOT / candidate
+        if candidate.is_file():
+            resolved.append(str(candidate.resolve()))
+        else:
+            resolved.append(argument)
+    return resolved
+
+
 def runner_configuration(args: argparse.Namespace) -> tuple[list[str], dict[str, Any]]:
     if args.runner_command is not None:
         command = parse_runner_command(args.runner_command)
@@ -198,7 +227,7 @@ def runner_configuration(args: argparse.Namespace) -> tuple[list[str], dict[str,
         if key in metadata:
             raise EvalError(f"duplicate runner metadata key: {key}")
         metadata[key] = value
-    return command, metadata
+    return resolve_runner_file_arguments(command), metadata
 
 
 def hash_file(path: Path) -> str:
@@ -304,6 +333,11 @@ def load_suite(path: Path) -> tuple[dict[str, Any], str]:
         raise EvalError(f"suite must be valid UTF-8 JSON: {exc}") from exc
     if not isinstance(suite, dict) or not isinstance(suite.get("cases"), list) or not suite["cases"]:
         raise EvalError("suite must be an object with a nonempty cases array")
+    skill_name = suite.get("skill_name")
+    if not isinstance(skill_name, str) or not re.fullmatch(
+        r"[a-z0-9]+(?:-[a-z0-9]+)*", skill_name
+    ):
+        raise EvalError("suite skill_name must use lowercase letters, digits, and hyphens")
     case_ids = set()
     for index, case in enumerate(suite["cases"]):
         if not isinstance(case, dict):
@@ -414,6 +448,94 @@ def prepare_output(path: Path) -> Path:
     else:
         path.mkdir(parents=True)
     return path.resolve()
+
+
+def discovery_skill_paths(path: Path, skill_name: str) -> list[Path]:
+    found = []
+    for ancestor in (path, *path.parents):
+        for skill_root in DISCOVERY_SKILL_ROOTS:
+            candidate = ancestor / skill_root / skill_name / "SKILL.md"
+            if candidate.is_file():
+                found.append(candidate.resolve())
+    return sorted(set(found), key=str)
+
+
+def validate_work_root(path: Path, output: Path, skill_name: str) -> None:
+    if path.is_relative_to(ROOT):
+        raise EvalError(f"work root must be outside the repository: {path}")
+    if path.is_relative_to(output) or output.is_relative_to(path):
+        raise EvalError(f"work root and output must not contain one another: {path}")
+    discovered = discovery_skill_paths(path, skill_name)
+    if discovered:
+        joined = ", ".join(str(candidate) for candidate in discovered)
+        raise EvalError(
+            f"work root has same-name skill discovery ancestors for {skill_name!r}: "
+            f"{joined}"
+        )
+
+
+def prepare_work_root(
+    requested: Path | None, output: Path, skill_name: str
+) -> tuple[Path, bool]:
+    owned = requested is None
+    created = False
+    if owned:
+        path = Path(tempfile.mkdtemp(prefix="boring-backend-eval-"))
+        created = True
+    else:
+        path = requested.expanduser()
+        if path.is_symlink():
+            raise EvalError(f"work root must not be a symlink: {path}")
+        if path.exists():
+            if not path.is_dir():
+                raise EvalError(f"work root is not a directory: {path}")
+            if any(path.iterdir()):
+                raise EvalError(f"work root directory must be empty: {path}")
+        else:
+            path.mkdir(parents=True)
+            created = True
+
+    resolved = path.resolve()
+    try:
+        if is_windows_reparse_point(resolved):
+            raise EvalError(f"work root must not be a Windows reparse point: {resolved}")
+        validate_work_root(resolved, output, skill_name)
+    except Exception:
+        if created:
+            shutil.rmtree(resolved, ignore_errors=True)
+        raise
+    return resolved, owned
+
+
+def archive_file(source: Path, destination: Path, byte_limit: int | None = None) -> None:
+    if not source.is_file() or source.is_symlink():
+        return
+    if byte_limit is not None and source.stat().st_size > byte_limit:
+        return
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+
+
+def archive_run(
+    work_run_dir: Path,
+    report_run_dir: Path,
+    artifacts: list[str] | None = None,
+) -> None:
+    report_run_dir.mkdir(parents=True, exist_ok=True)
+    archive_file(work_run_dir / "request.json", report_run_dir / "request.json")
+    archive_file(
+        work_run_dir / "response.json",
+        report_run_dir / "response.json",
+        RESPONSE_BYTE_LIMIT,
+    )
+    archive_file(
+        work_run_dir / "runner.stderr",
+        report_run_dir / "runner.stderr",
+    )
+    for relative in artifacts or []:
+        source = (work_run_dir / relative).resolve()
+        destination = report_run_dir / relative
+        archive_file(source, destination)
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -534,10 +656,11 @@ def invoke_runner(
     command: list[str],
     request_path: Path,
     response_path: Path,
+    cwd: Path,
     timeout_seconds: float,
 ) -> RunnerResult:
     popen_arguments: dict[str, Any] = {
-        "cwd": ROOT,
+        "cwd": cwd,
         "shell": False,
         "stdout": subprocess.DEVNULL,
         "stderr": subprocess.PIPE,
@@ -695,12 +818,39 @@ def validate_response(path: Path, run_dir: Path) -> dict[str, Any]:
     if not isinstance(metadata, dict):
         raise EvalError("runner response metadata must be an object")
 
+    isolation = response.get("isolation")
+    if not isinstance(isolation, dict):
+        raise EvalError("runner response isolation attestation must be an object")
+    unknown_isolation_fields = sorted(set(isolation) - ISOLATION_FIELDS)
+    if unknown_isolation_fields:
+        raise EvalError(
+            "runner response isolation has unknown fields: "
+            + ", ".join(unknown_isolation_fields)
+        )
+    if isolation.get("verified") is not True:
+        raise EvalError("runner response must attest isolation.verified=true")
+    isolation_method = isolation.get("method")
+    if not isinstance(isolation_method, str) or not isolation_method.strip():
+        raise EvalError("runner response isolation.method must be a nonempty string")
+    unexpected_skills = isolation.get("unexpected_same_name_skills")
+    if not isinstance(unexpected_skills, list) or not all(
+        isinstance(value, str) and value for value in unexpected_skills
+    ):
+        raise EvalError(
+            "runner response isolation.unexpected_same_name_skills must be an array of strings"
+        )
+    if unexpected_skills:
+        raise EvalError(
+            "runner reported unexpected same-name skills: " + ", ".join(unexpected_skills)
+        )
+
     return {
         "activation": activation,
         "catalogs": catalogs,
         "usage": usage,
         "artifacts": validate_artifacts(response.get("artifacts", []), run_dir),
         "metadata": metadata,
+        "isolation": isolation,
     }
 
 
@@ -863,6 +1013,9 @@ def make_manifest(
     variants: list[dict[str, Any]],
     command: list[str],
     runner_metadata: dict[str, Any],
+    work_root: Path,
+    work_root_owned: bool,
+    skill_name: str,
     seed: int,
     trials: int,
     timeout_seconds: float,
@@ -877,6 +1030,13 @@ def make_manifest(
         "python": platform.python_version(),
         "seed": seed,
         "trials": trials,
+        "execution": {
+            "work_root": str(work_root),
+            "auto_cleanup": work_root_owned,
+            "runner_cwd": "per-run run directory",
+            "skill_name": skill_name,
+            "same_name_ancestor_scan": "passed",
+        },
         "runner": {
             "command": command,
             "command_files": command_file_hashes(command),
@@ -935,6 +1095,8 @@ def build_run_schedule(
 
 def run_evaluation(args: argparse.Namespace) -> int:
     output: Path | None = None
+    work_root: Path | None = None
+    work_root_owned = False
     variants: list[dict[str, Any]] = []
     suite_sha256: str | None = None
     records: list[dict[str, Any]] = []
@@ -948,18 +1110,25 @@ def run_evaluation(args: argparse.Namespace) -> int:
         command, runner_metadata = runner_configuration(args)
         variants = parse_variants(args.variant)
         suite, suite_sha256 = load_suite(args.suite)
+        skill_name = suite["skill_name"]
+        work_root, work_root_owned = prepare_work_root(args.work_root, output, skill_name)
         manifest = make_manifest(
             args.suite,
             suite_sha256,
             variants,
             command,
             runner_metadata,
+            work_root,
+            work_root_owned,
+            skill_name,
             args.seed,
             args.trials,
             args.timeout_seconds,
         )
-        runs_root = output / "runs"
-        runs_root.mkdir()
+        report_runs_root = output / "runs"
+        report_runs_root.mkdir()
+        work_runs_root = work_root / "runs"
+        work_runs_root.mkdir()
         write_json(output / "manifest.json", manifest)
         results_path = output / "results.jsonl"
         results_path.touch()
@@ -968,12 +1137,13 @@ def run_evaluation(args: argparse.Namespace) -> int:
         with results_path.open("a", encoding="utf-8", newline="\n") as results_file:
             for run_number, (case, trial, variant, run_seed) in enumerate(schedule, start=1):
                 run_id = f"run-{run_number:06d}"
-                run_dir = runs_root / run_id
-                if run_dir.exists():
-                    raise EvalError(f"run directory already exists: {run_dir}")
-                run_dir.mkdir()
-                workspace = run_dir / "workspace"
-                runtime = run_dir / "runtime"
+                work_run_dir = work_runs_root / run_id
+                report_run_dir = report_runs_root / run_id
+                if work_run_dir.exists() or report_run_dir.exists():
+                    raise EvalError(f"run directory already exists: {run_id}")
+                work_run_dir.mkdir()
+                workspace = work_run_dir / "workspace"
+                runtime = work_run_dir / "runtime"
                 workspace.mkdir()
                 runtime.mkdir()
                 runtime_skill = copy_skill(variant, runtime)
@@ -986,44 +1156,58 @@ def run_evaluation(args: argparse.Namespace) -> int:
                     "variant": {
                         "skill_path": str(runtime_skill) if runtime_skill is not None else None,
                     },
+                    "isolation": {
+                        "skill_name": skill_name,
+                        "allowed_skill_path": (
+                            str(runtime_skill) if runtime_skill is not None else None
+                        ),
+                        "require_no_other_same_name_skill": True,
+                    },
                     "paths": {
-                        "run_dir": str(run_dir),
+                        "run_dir": str(work_run_dir),
                         "workspace": str(workspace),
                         "runtime": str(runtime),
                     },
                 }
-                request_path = run_dir / "request.json"
-                response_path = run_dir / "response.json"
-                stderr_path = run_dir / "runner.stderr"
+                request_path = work_run_dir / "request.json"
+                response_path = work_run_dir / "response.json"
+                stderr_path = work_run_dir / "runner.stderr"
                 write_json(request_path, request)
-                completed = invoke_runner(
-                    command,
-                    request_path,
-                    response_path,
-                    args.timeout_seconds,
-                )
-                write_stderr_excerpt(stderr_path, completed.stderr_excerpt)
-                detail = f": {completed.stderr_excerpt}" if completed.stderr_excerpt else ""
-                if completed.timed_out:
-                    cleanup = (
-                        f"; cleanup best effort: {'; '.join(completed.cleanup_errors)}"
-                        if completed.cleanup_errors
-                        else ""
+                try:
+                    completed = invoke_runner(
+                        command,
+                        request_path,
+                        response_path,
+                        work_run_dir,
+                        args.timeout_seconds,
                     )
-                    raise EvalError(f"runner timed out for {run_id}{detail}{cleanup}")
-                if completed.cleanup_errors:
-                    raise EvalError(
-                        f"runner cleanup failed for {run_id}: {'; '.join(completed.cleanup_errors)}"
-                    )
-                if completed.returncode != 0:
-                    raise EvalError(
-                        f"runner exited {completed.returncode} for {run_id}{detail}"
-                    )
-                response = validate_response(response_path, run_dir)
+                    write_stderr_excerpt(stderr_path, completed.stderr_excerpt)
+                    detail = f": {completed.stderr_excerpt}" if completed.stderr_excerpt else ""
+                    if completed.timed_out:
+                        cleanup = (
+                            f"; cleanup best effort: {'; '.join(completed.cleanup_errors)}"
+                            if completed.cleanup_errors
+                            else ""
+                        )
+                        raise EvalError(f"runner timed out for {run_id}{detail}{cleanup}")
+                    if completed.cleanup_errors:
+                        raise EvalError(
+                            f"runner cleanup failed for {run_id}: "
+                            f"{'; '.join(completed.cleanup_errors)}"
+                        )
+                    if completed.returncode != 0:
+                        raise EvalError(
+                            f"runner exited {completed.returncode} for {run_id}{detail}"
+                        )
+                    response = validate_response(response_path, work_run_dir)
+                except Exception:
+                    archive_run(work_run_dir, report_run_dir)
+                    raise
+                archive_run(work_run_dir, report_run_dir, response["artifacts"])
                 record = {
                     "protocol_version": PROTOCOL_VERSION,
                     "run_id": run_id,
-                    "run_dir": run_dir.relative_to(output).as_posix(),
+                    "run_dir": report_run_dir.relative_to(output).as_posix(),
                     "variant": variant["name"],
                     "skill_tree_sha256": variant["skill_tree_sha256"],
                     "case_id": case["id"],
@@ -1061,6 +1245,9 @@ def run_evaluation(args: argparse.Namespace) -> int:
         if isinstance(exc, EvalError):
             raise
         raise EvalError(error) from exc
+    finally:
+        if work_root_owned and work_root is not None:
+            shutil.rmtree(work_root, ignore_errors=True)
 
 
 def main(argv: list[str] | None = None) -> int:

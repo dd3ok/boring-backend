@@ -159,7 +159,15 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertTrue(manifest["python"])
             self.assertEqual(manifest["seed"], 17)
             self.assertEqual(manifest["trials"], 2)
-            self.assertEqual(manifest["runner"]["command"], [sys.executable, str(FAKE_RUNNER)])
+            self.assertTrue(manifest["execution"]["auto_cleanup"])
+            self.assertEqual(manifest["execution"]["runner_cwd"], "per-run run directory")
+            self.assertEqual(manifest["execution"]["skill_name"], "example-skill")
+            self.assertEqual(manifest["execution"]["same_name_ancestor_scan"], "passed")
+            self.assertFalse(Path(manifest["execution"]["work_root"]).exists())
+            self.assertEqual(
+                manifest["runner"]["command"],
+                [str(Path(sys.executable).resolve()), str(FAKE_RUNNER)],
+            )
             self.assertEqual(
                 manifest["runner"]["metadata"], {"adapter": "fake", "model": "deterministic"}
             )
@@ -180,6 +188,9 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertTrue(all(result["response"]["activation"] is None for result in unknown_results))
             self.assertTrue(all(result["response"]["catalogs"] is None for result in unknown_results))
             self.assertTrue(all(result["response"]["usage"] is None for result in unknown_results))
+            self.assertTrue(
+                all(result["response"]["isolation"]["verified"] for result in results)
+            )
 
             for result in results:
                 run_dir = output / result["run_dir"]
@@ -192,14 +203,29 @@ class RunSkillEvalTests(unittest.TestCase):
                     case["query"] for case in json.loads(suite.read_text(encoding="utf-8"))["cases"]
                     if case["id"] == result["case_id"]
                 ))
-                self.assertTrue((run_dir / "workspace").is_dir())
-                self.assertTrue((run_dir / "runtime").is_dir())
+                work_run_dir = Path(request["paths"]["run_dir"])
+                self.assertFalse(work_run_dir.exists())
+                self.assertFalse(work_run_dir.is_relative_to(REPO))
+                self.assertFalse(work_run_dir.is_relative_to(output))
+                self.assertEqual(
+                    request["isolation"]["require_no_other_same_name_skill"], True
+                )
+                self.assertEqual(request["isolation"]["skill_name"], "example-skill")
                 if result["variant"] == "skilled":
                     copied_skill = Path(request["variant"]["skill_path"])
-                    self.assertTrue(copied_skill.resolve().is_relative_to(run_dir.resolve()))
-                    self.assertTrue((copied_skill / "SKILL.md").is_file())
+                    self.assertTrue(copied_skill.is_relative_to(work_run_dir))
+                    self.assertEqual(
+                        request["isolation"]["allowed_skill_path"], str(copied_skill)
+                    )
                 else:
                     self.assertIsNone(request["variant"]["skill_path"])
+                    self.assertIsNone(request["isolation"]["allowed_skill_path"])
+                if "artifact=workspace/evidence.txt" in request["query"]:
+                    self.assertEqual(
+                        (run_dir / "workspace" / "evidence.txt").read_text(encoding="utf-8"),
+                        "evidence\n",
+                    )
+                self.assertFalse((run_dir / "runtime").exists())
 
             skilled = summary["variants"]["skilled"]
             self.assertEqual(summary["status"], "ok")
@@ -252,13 +278,14 @@ class RunSkillEvalTests(unittest.TestCase):
         command = ["runner executable", "adapter.py", "--fixed-option"]
         request = Path("request path.json")
         response = Path("response path.json")
+        run_dir = Path("run dir")
         process = mock.Mock(pid=1234, returncode=0)
         process.stderr = io.BytesIO(b"x" * 10000)
         process.wait.return_value = 0
 
         with mock.patch.object(module.subprocess, "Popen", return_value=process) as popen:
             completed = module.invoke_runner(
-                command, request, response, timeout_seconds=12
+                command, request, response, run_dir, timeout_seconds=12
             )
 
         self.assertEqual(completed.returncode, 0)
@@ -268,7 +295,7 @@ class RunSkillEvalTests(unittest.TestCase):
         self.assertEqual(
             args[0], command + ["--request", str(request), "--response", str(response)]
         )
-        self.assertEqual(kwargs["cwd"], module.ROOT)
+        self.assertEqual(kwargs["cwd"], run_dir)
         self.assertFalse(kwargs["shell"])
         self.assertIs(kwargs["stdout"], subprocess.DEVNULL)
         self.assertIs(kwargs["stderr"], subprocess.PIPE)
@@ -304,13 +331,16 @@ class RunSkillEvalTests(unittest.TestCase):
 
             self.assertEqual(completed.returncode, 0, completed.stderr)
             manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["runner"]["command"], [sys.executable, str(FAKE_RUNNER)])
+            self.assertEqual(
+                manifest["runner"]["command"],
+                [str(Path(sys.executable).resolve()), str(FAKE_RUNNER)],
+            )
             self.assertEqual(
                 manifest["runner"]["metadata"],
                 {"adapter": "fake", "model": "deterministic"},
             )
 
-    def test_relative_adapter_path_runs_from_repository_root_and_is_hashed(self):
+    def test_relative_adapter_path_is_resolved_before_per_run_launch_and_hashed(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             skill = self.make_skill(root)
@@ -321,7 +351,7 @@ class RunSkillEvalTests(unittest.TestCase):
                         "id": "relative-adapter",
                         "query": "activation=true",
                         "should_trigger": True,
-                        "rationale": "relative adapter paths resolve from the repository root",
+                        "rationale": "relative adapter files resolve before the per-run launch",
                     }
                 ],
             )
@@ -347,6 +377,92 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertEqual(
                 command_file["sha256"], hashlib.sha256(FAKE_RUNNER.read_bytes()).hexdigest()
             )
+            self.assertEqual(manifest["runner"]["command"][1], str(FAKE_RUNNER))
+
+    def test_explicit_isolated_work_root_is_preserved_and_used_as_runner_cwd(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            skill = self.make_skill(root)
+            suite = write_suite(
+                root,
+                [
+                    {
+                        "id": "explicit-work-root",
+                        "query": "activation=true",
+                        "should_trigger": True,
+                        "rationale": "explicit execution roots support retained debugging artifacts",
+                    }
+                ],
+            )
+            output = root / "output"
+            work_root = root / "isolated-work"
+
+            completed = self.run_cli(
+                suite,
+                output,
+                skill,
+                "--work-root",
+                str(work_root),
+                variants=[f"skilled={skill}"],
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+            result = read_jsonl(output / "results.jsonl")[0]
+            self.assertFalse(manifest["execution"]["auto_cleanup"])
+            self.assertEqual(Path(manifest["execution"]["work_root"]), work_root.resolve())
+            self.assertTrue(work_root.is_dir())
+            work_run_dir = work_root / "runs" / result["run_id"]
+            self.assertEqual(
+                Path(result["response"]["metadata"]["cwd"]).resolve(),
+                work_run_dir.resolve(),
+            )
+
+    def test_rejects_work_root_with_same_name_project_skill_ancestor(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            skill = self.make_skill(root)
+            suite = write_suite(
+                root,
+                [
+                    {
+                        "id": "contaminated-work-root",
+                        "query": "activation=true",
+                        "should_trigger": True,
+                        "rationale": "same-name ancestor skills invalidate a no-skill baseline",
+                    }
+                ],
+            )
+            contaminating_skill = root / ".agents" / "skills" / "example-skill"
+            contaminating_skill.mkdir(parents=True)
+            (contaminating_skill / "SKILL.md").write_text("# Contaminating skill\n", encoding="utf-8")
+            output = root / "output"
+            work_root = root / "isolated-work"
+
+            completed = self.run_cli(
+                suite,
+                output,
+                skill,
+                "--work-root",
+                str(work_root),
+                variants=[f"skilled={skill}", "baseline"],
+            )
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("same-name skill discovery ancestors", completed.stderr)
+            self.assertIn(str((contaminating_skill / "SKILL.md").resolve()), completed.stderr)
+            self.assertFalse(work_root.exists())
+
+    def test_rejects_work_root_inside_the_repository_even_for_another_skill(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "output"
+            with self.assertRaisesRegex(module.EvalError, "outside the repository"):
+                module.validate_work_root(
+                    REPO / "reports" / "work",
+                    output,
+                    "another-skill",
+                )
 
     def test_successful_stderr_is_capped_in_results(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -475,6 +591,42 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertEqual(summary["status"], "failed")
             self.assertIn("valid JSON", summary["error"])
             self.assertLessEqual(len(completed.stderr), 2300)
+
+    def test_missing_or_contaminated_isolation_attestation_is_a_protocol_failure(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            skill = self.make_skill(root)
+            for mode, expected in (
+                ("missing-isolation", "isolation attestation"),
+                ("unexpected-skill", "unexpected same-name skills"),
+            ):
+                with self.subTest(mode=mode):
+                    suite = write_suite(
+                        root,
+                        [
+                            {
+                                "id": mode,
+                                "query": f"activation=true mode={mode}",
+                                "should_trigger": True,
+                                "rationale": "adapter isolation must be explicitly attested",
+                            }
+                        ],
+                    )
+                    output = root / f"output-{mode}"
+
+                    completed = self.run_cli(
+                        suite,
+                        output,
+                        skill,
+                        variants=[f"skilled={skill}"],
+                    )
+
+                    self.assertNotEqual(completed.returncode, 0)
+                    self.assertIn(expected, completed.stderr)
+                    summary = json.loads(
+                        (output / "summary.json").read_text(encoding="utf-8")
+                    )
+                    self.assertEqual(summary["status"], "failed")
 
     def test_invalid_response_field_type_is_a_protocol_failure(self):
         with tempfile.TemporaryDirectory() as temp_dir:

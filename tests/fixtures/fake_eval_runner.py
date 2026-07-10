@@ -106,6 +106,9 @@ def main() -> int:
             json.dumps({"usage": {"total_tokens": 1e308}}), encoding="utf-8"
         )
         return 0
+    if tokens.get("mode") == "missing-isolation":
+        response_path.write_text(json.dumps({"activation": True}), encoding="utf-8")
+        return 0
 
     catalogs_token = tokens.get("catalogs")
     if catalogs_token is None or catalogs_token == "null":
@@ -139,7 +142,16 @@ def main() -> int:
         "catalogs": catalogs,
         "usage": usage,
         "artifacts": artifacts,
-        "metadata": {"fixture": "fake-eval-runner"},
+        "metadata": {"fixture": "fake-eval-runner", "cwd": str(Path.cwd())},
+        "isolation": {
+            "verified": True,
+            "method": "fixture isolated work root",
+            "unexpected_same_name_skills": (
+                ["/unexpected/example-skill"]
+                if tokens.get("mode") == "unexpected-skill"
+                else []
+            ),
+        },
     }
     response_path.write_text(json.dumps(response), encoding="utf-8")
     return 0
