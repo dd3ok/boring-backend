@@ -1,6 +1,6 @@
 # Operations Guard Catalog
 
-Read this file only when the task asks for production readiness, launch/deployment/rollback, migration rollout, observability, SLOs, incident readiness, supply chain, or cost/resource risk.
+Read this file only when the task touches package/dependency/lockfile or supply-chain risk, or asks for production readiness, launch/deployment/rollback, migration rollout, observability, SLOs, incident readiness, or cost/resource risk.
 
 ## Implementation Lens
 
@@ -10,7 +10,7 @@ Read this file only when the task asks for production readiness, launch/deployme
 | SLO readiness | Name user-visible success, latency, availability, and saturation signals. Local tests are not SLO evidence. |
 | Deployment safety | Prefer automated verification, staged rollout/canary, and rollback notes for high-risk API, data, config, or dependency changes. |
 | Migration rollout | For schema or data changes, name expand/contract sequencing, mixed-version behavior, backfill ownership, and rollback limits. |
-| Supply chain | Follow workspace install policy. Prefer lockfiles, pinned major versions, vulnerability/dependency checks, secret scans, and minimal new dependencies. Avoid global installs unless explicitly approved and allowed by the workspace. |
+| Package/dependency supply chain | Route package manifests, dependencies, lockfiles, registries/provenance, vulnerabilities/licenses, and build/install policy here. Keep manifests and lockfiles synchronized, follow workspace-local install policy, verify relevant integrity/audit/build evidence, pin compatible versions, minimize additions, and avoid unapproved global installs. |
 | Cost/resource risk | Bound external API spend, storage growth, background jobs, high-cardinality metrics, and resource growth that can become an operational bill or capacity incident. |
 | Incident readiness | Name runbook gaps for new failure modes when production readiness is requested. |
 

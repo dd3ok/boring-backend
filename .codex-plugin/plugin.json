@@ -1,0 +1,31 @@
+{
+  "name": "boring-backend",
+  "version": "0.1.0",
+  "description": "Reliability guardrails for designing, implementing, and reviewing API and service changes.",
+  "author": {
+    "name": "dd3ok",
+    "url": "https://github.com/dd3ok"
+  },
+  "repository": "https://github.com/dd3ok/boring-backend",
+  "homepage": "https://github.com/dd3ok/boring-backend",
+  "license": "MIT",
+  "keywords": [
+    "backend",
+    "api",
+    "reliability",
+    "agent-skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Boring Backend",
+    "shortDescription": "Reliability guardrails for API and service work",
+    "longDescription": "Design, implement, and review API and service changes with scoped reliability, security, data-integrity, performance, and operational guardrails.",
+    "developerName": "dd3ok",
+    "category": "Productivity",
+    "capabilities": [],
+    "websiteURL": "https://github.com/dd3ok/boring-backend",
+    "defaultPrompt": [
+      "Use Boring Backend to design, implement, or review this API or service change."
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "skill_name": "boring-backend",
   "purpose": "Check implicit skill selection without naming the skill in the query.",
   "cases": [
@@ -49,6 +50,18 @@
       "query": "Assess this API before launch for SLO evidence, observability, rollback readiness, restore testing, and unbounded cost or resource risks.",
       "should_trigger": true,
       "rationale": "The request explicitly asks for API production-readiness evidence."
+    },
+    {
+      "id": "dependency-lockfile-upgrade",
+      "query": "Review a service dependency upgrade and its lockfile for registry provenance, known vulnerabilities, license impact, reproducible installation, and build safety.",
+      "should_trigger": true,
+      "rationale": "The request involves service dependency and software supply-chain risk."
+    },
+    {
+      "id": "sensitive-ticket-flow-abuse",
+      "query": "Design the backend controls for a limited-ticket reservation API so valid accounts and bots cannot hoard inventory, evade quotas, or overwhelm the flow.",
+      "should_trigger": true,
+      "rationale": "The request involves abuse resistance for a sensitive API business flow."
     },
     {
       "id": "openapi-nullability-contract",

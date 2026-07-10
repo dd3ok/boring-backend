@@ -6,7 +6,7 @@ Read this file only when the task touches public/internal APIs, OpenAPI/Proto/Gr
 
 | Risk | Implement or Report |
 |---|---|
-| Contract source | Keep implementation, tests, and OpenAPI/Proto/GraphQL/docs aligned. If no contract exists, state compatibility confidence is limited. |
+| Contract source | Keep implementation, tests, and OpenAPI/Proto/GraphQL/docs aligned. If no contract exists, state compatibility evidence is limited. |
 | Change classification | Classify additive, behavior-changing, breaking, or unknown changes before editing public or cross-team API behavior. |
 | Request/response fields | Do not remove fields, change meaning/type/nullability, expose new sensitive fields, or make optional input required without versioning or migration notes. |
 | Enum expansion | Treat enum additions as compatibility-sensitive unless clients are documented to handle unknown values. |
@@ -23,11 +23,3 @@ Read this file only when the task touches public/internal APIs, OpenAPI/Proto/Gr
 - Are undocumented consumers or SDKs affected?
 - Does the report distinguish additive changes from breaking semantic changes?
 - Are contract docs, tests, and implementation aligned?
-
-## Severity
-
-| Grade | Meaning |
-|---|---|
-| P1 | Compatibility issue causes security/privacy exposure, data corruption, or cross-tenant/user impact |
-| P2 | Client-breaking API/status/schema/semantic contract drift |
-| P3 | Missing compatibility evidence or governance notes without proven client breakage |

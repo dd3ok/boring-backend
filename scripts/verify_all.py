@@ -21,6 +21,16 @@ def build_commands(root: Path = ROOT) -> list[Command]:
     python = sys.executable
     return [
         Command(
+            "official Agent Skills validation",
+            [
+                python,
+                "-m",
+                "skills_ref.cli",
+                "validate",
+                str(root / "skills" / "boring-backend"),
+            ],
+        ),
+        Command(
             "skill mirror verification",
             [python, str(root / "scripts" / "verify_boring_backend_skill_mirrors.py")],
         ),
