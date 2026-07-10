@@ -30,10 +30,10 @@ The skill uses one trigger with four internal modes:
 - `skills/boring-backend/`: source skill package.
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
-- `validation/`: maintenance-only forward-test prompts; not part of the runtime skill.
-- `scripts/verify_all.py`: runs mirror, repository, and forward-test implementation checks.
+- `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
+- `scripts/verify_all.py`: runs mirror and repository checks.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
-- `reports/`: forward-test reports and a tiny runnable implementation test artifact.
+- `reports/`: ignored workspace for generated evaluation output; retained only as an empty local target.
 
 ## Install
 
@@ -53,7 +53,7 @@ Common local targets:
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, maintenance prompts, test artifacts, and verification utilities.
+Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` as runtime skills. They are development mirrors, evaluation assets, generated output, and verification utilities.
 
 ## Verification
 
@@ -72,3 +72,7 @@ py -3 scripts/verify_all.py    # Windows
 ```
 
 GitHub Actions runs the same entrypoint on Ubuntu, macOS, and Windows.
+
+## License
+
+MIT. See `LICENSE`.

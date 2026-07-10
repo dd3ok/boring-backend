@@ -28,20 +28,6 @@ def build_commands(root: Path = ROOT) -> list[Command]:
             "repository tests",
             [python, "-m", "unittest", "discover", "-s", str(root / "tests")],
         ),
-        Command(
-            "forward-test implementation tests",
-            [
-                python,
-                "-B",
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                str(root / "reports" / "boring-backend-forward-test-implementation"),
-                "-p",
-                "test_*.py",
-            ],
-        ),
     ]
 
 

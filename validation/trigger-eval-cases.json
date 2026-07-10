@@ -1,0 +1,102 @@
+{
+  "skill_name": "boring-backend",
+  "purpose": "Check implicit skill selection without naming the skill in the query.",
+  "cases": [
+    {
+      "id": "authz-owner-boundary",
+      "query": "Review the invoice update endpoint. It accepts invoice_id and account_id from the request body; verify that one tenant cannot update another tenant's invoice.",
+      "should_trigger": true,
+      "rationale": "The request involves an API authorization and tenant ownership boundary."
+    },
+    {
+      "id": "idempotent-payment",
+      "query": "Implement a payment capture endpoint that safely handles client retries with the same idempotency key and rejects a replay with a different amount.",
+      "should_trigger": true,
+      "rationale": "The request involves API state transitions and idempotency replay semantics."
+    },
+    {
+      "id": "concurrent-reservation",
+      "query": "Fix the reservation service so two requests arriving at the same time cannot book overlapping times for the same room.",
+      "should_trigger": true,
+      "rationale": "The request involves concurrency and a durable data-integrity invariant."
+    },
+    {
+      "id": "external-carrier-api",
+      "query": "Add a shipping quote endpoint that calls a carrier service, validates its response, and does not hang or duplicate work when the carrier times out.",
+      "should_trigger": true,
+      "rationale": "The request involves an external dependency, timeout behavior, validation, and duplicate work."
+    },
+    {
+      "id": "high-traffic-search",
+      "query": "Review the product search endpoint before a high-traffic launch for bounded pagination, N+1 queries, index use, payload size, and pool saturation.",
+      "should_trigger": true,
+      "rationale": "The request involves API performance and production resource risk."
+    },
+    {
+      "id": "online-backfill",
+      "query": "Design a rollout for adding a non-null customer tier to a large orders table, including a safe backfill, compatibility window, and rollback.",
+      "should_trigger": true,
+      "rationale": "The request involves schema migration, persistent data, compatibility, and rollback risk."
+    },
+    {
+      "id": "duplicate-events",
+      "query": "Review the order-created consumer for duplicate and out-of-order delivery, bounded retries, poison messages, and idempotent side effects.",
+      "should_trigger": true,
+      "rationale": "The request involves distributed events, retries, and idempotent processing."
+    },
+    {
+      "id": "production-readiness",
+      "query": "Assess this API before launch for SLO evidence, observability, rollback readiness, restore testing, and unbounded cost or resource risks.",
+      "should_trigger": true,
+      "rationale": "The request explicitly asks for API production-readiness evidence."
+    },
+    {
+      "id": "ui-auth-error-copy",
+      "query": "Change the authorization error text in the web UI from 'Forbidden' to 'You do not have access'. No API behavior changes are needed.",
+      "should_trigger": false,
+      "rationale": "This is a UI-only copy change despite sharing authorization terminology."
+    },
+    {
+      "id": "openapi-description-typo",
+      "query": "Fix a spelling mistake in the OpenAPI summary for the payment endpoint without changing the schema or generated client behavior.",
+      "should_trigger": false,
+      "rationale": "This is a documentation-only correction with no contract change."
+    },
+    {
+      "id": "transaction-variable-rename",
+      "query": "Rename the private local variable transaction_id to tx_id in this helper; behavior and public interfaces must remain identical.",
+      "should_trigger": false,
+      "rationale": "This is a trivial local refactor despite containing a transaction keyword."
+    },
+    {
+      "id": "order-status-list-css",
+      "query": "Tighten spacing and update colors in the order status list component. Do not touch data fetching or backend code.",
+      "should_trigger": false,
+      "rationale": "This is a UI-only style change despite mentioning order status and lists."
+    },
+    {
+      "id": "pagination-readme-format",
+      "query": "Reformat the pagination example in README so the JSON is easier to read; the documented values and API behavior stay unchanged.",
+      "should_trigger": false,
+      "rationale": "This is a documentation formatting change despite mentioning pagination and API behavior."
+    },
+    {
+      "id": "retry-button-label",
+      "query": "Rename the 'Retry payment' button to 'Try again' in the frontend and update its snapshot. Keep the existing command unchanged.",
+      "should_trigger": false,
+      "rationale": "This is frontend copy and snapshot maintenance despite payment and retry keywords."
+    },
+    {
+      "id": "static-status-doc-list",
+      "query": "Alphabetize the static list of HTTP status names in the documentation fixture; it is not used by application code.",
+      "should_trigger": false,
+      "rationale": "This is a non-runtime fixture edit despite status and list terminology."
+    },
+    {
+      "id": "package-keywords",
+      "query": "Add API, reliability, and concurrency keywords to the package metadata only; do not change source or runtime configuration.",
+      "should_trigger": false,
+      "rationale": "This is a metadata-only change despite matching several discovery keywords."
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 ---
 name: boring-backend
 description: Designs, implements, or reviews API/service reliability when work involves auth, data integrity, idempotency, concurrency, performance, distributed behavior, or ops risk.
+license: MIT
 ---
 
 # Boring Backend
@@ -34,17 +35,15 @@ Catalog targets; load only when routed: `references/core-guard-catalog.md`, `ref
 
 ## Mode Details
 
-Design output: contract summary, risk calibration, P0/P1/P2 map, minimal architecture, guard plan, assumptions, exclusions, and token telemetry plan when experiments request it.
+Design output: contract summary, risk calibration, P0/P1/P2 map, minimal architecture, guard plan, assumptions, and exclusions.
 
-Implementation output: changed files, guard evidence, commands/results, architecture notes, remaining gaps, and token fields when telemetry exists.
+Implementation output: changed files, guard evidence, commands/results, architecture notes, and remaining gaps.
 
 Review output: verdict/confidence, P0-P4 findings or gaps, guard status, commands/results, architecture notes, remaining gaps, and fixes only when allowed.
 
-When token telemetry exists, read `references/token-reporting.md`.
-
 Read `references/subagent-delegation.md` before ordinary subagent delegation.
 
-Read `references/experiment-reporting.md` for experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.
+Read `references/handoff-reporting.md` for requested handoffs or multi-phase runs.
 
 ## Fix Rules
 

@@ -32,10 +32,10 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - `skills/boring-backend/`: 원본 skill 패키지입니다.
 - `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
-- `validation/`: 유지보수용 forward-test prompt입니다. runtime skill에는 포함하지 않습니다.
-- `scripts/verify_all.py`: 미러, 레포 테스트, forward-test 구현 테스트를 한 번에 실행합니다.
+- `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
+- `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
 - `scripts/verify_boring_backend_skill_mirrors.py`: 원본 skill과 미러 패키지가 동기화되어 있는지 검증합니다.
-- `reports/`: forward-test 보고서와 작은 실행 가능 구현 테스트 산출물입니다.
+- `reports/`: 생성된 평가 출력을 두는 ignore 대상 작업 디렉터리입니다. 빈 로컬 경로만 유지합니다.
 
 ## 설치
 
@@ -55,7 +55,7 @@ Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-`.agents/`, `.claude/`, `validation/`, `reports/`, `scripts/` 전체를 runtime skill로 설치하지 마세요. 이들은 개발용 미러, 유지보수 prompt, 테스트 산출물, 검증 유틸리티입니다.
+`.agents/`, `.claude/`, `validation/`, `reports/`, `scripts/` 전체를 runtime skill로 설치하지 마세요. 이들은 개발용 미러, 평가 자산, 생성 출력, 검증 유틸리티입니다.
 
 ## 검증
 
@@ -74,3 +74,7 @@ py -3 scripts/verify_all.py    # Windows
 ```
 
 GitHub Actions에서도 같은 진입점을 Ubuntu, macOS, Windows에서 실행합니다.
+
+## 라이선스
+
+MIT 라이선스를 적용합니다. 자세한 내용은 `LICENSE`를 확인하세요.

@@ -1,6 +1,6 @@
-# Experiment Reporting
+# Handoff Reporting
 
-Use this file for Boring Backend experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.
+Use this file for requested Boring Backend handoffs or multi-phase runs.
 
 ## Handoff Index
 
@@ -14,7 +14,6 @@ Use compact entries with these fields:
 - `evidence_path`
 - `command_exit`
 - `known_gap`
-- `token_usage`
 
 Do not paste code, long logs, full reports, transcripts, or catalog text into the handoff. Store paths and short claim labels instead.
 
@@ -27,9 +26,3 @@ Open the full first report only for a P0-P2 claim that cannot be resolved from t
 ## Delta Output
 
 Follow-up phases should reference `claim_id` values. Restate only changed assumptions, disputed claims, P0-P2 findings, unchecked evidence, and new commands/results.
-
-## Fairness
-
-First-run experiments: do not feed postmortem traps after seeing failures.
-
-Guarded clean runs: use the same pre-registered guard list for every variant.

@@ -23,24 +23,34 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
     def test_runtime_routes_ordinary_subagents_to_a_small_reference(self):
         skill_md = (REPO / "skills" / "boring-backend" / "SKILL.md").read_text(encoding="utf-8")
         references = REPO / "skills" / "boring-backend" / "references"
-        experiment_text = (references / "experiment-reporting.md").read_text(encoding="utf-8")
+        handoff_path = references / "handoff-reporting.md"
         subagent_path = references / "subagent-delegation.md"
 
         self.assertIn("references/subagent-delegation.md", skill_md)
+        self.assertTrue(handoff_path.exists())
         self.assertTrue(subagent_path.exists())
-        self.assertNotIn("subagent prompt boundary", experiment_text.lower())
+        handoff_text = handoff_path.read_text(encoding="utf-8") if handoff_path.exists() else ""
+        self.assertNotIn("subagent prompt boundary", handoff_text.lower())
         self.assertLessEqual(len(subagent_path.read_text(encoding="utf-8").split()), 70)
 
-    def test_runtime_routes_token_telemetry_out_of_core_routing(self):
+    def test_runtime_excludes_token_accounting(self):
         skill_md = (REPO / "skills" / "boring-backend" / "SKILL.md").read_text(encoding="utf-8")
         references = REPO / "skills" / "boring-backend" / "references"
-        core_routing = (references / "core-guard-routing.md").read_text(encoding="utf-8")
-        token_reporting = references / "token-reporting.md"
+        runtime = skill_md + "\n" + "\n".join(
+            path.read_text(encoding="utf-8") for path in references.glob("*.md")
+        )
 
-        self.assertIn("references/token-reporting.md", skill_md)
-        self.assertTrue(token_reporting.exists())
-        self.assertNotIn("## Token Reporting", core_routing)
-        self.assertLessEqual(len(token_reporting.read_text(encoding="utf-8").split()), 70)
+        self.assertFalse((references / "token-reporting.md").exists())
+        for term in (
+            "token telemetry",
+            "token_usage",
+            "cached_input_tokens",
+            "cache_write_tokens",
+            "noncached_input_tokens",
+            "reasoning_output_tokens",
+        ):
+            with self.subTest(term=term):
+                self.assertNotIn(term, runtime)
 
     def test_runtime_links_every_reference_directly_from_skill_md(self):
         skill_md = (REPO / "skills" / "boring-backend" / "SKILL.md").read_text(encoding="utf-8")
@@ -69,7 +79,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
             self.assertTrue(any("linked directly" in issue for issue in issues))
 
-    def test_semantics_rejects_routing_ordinary_subagents_to_experiment_reporting(self):
+    def test_semantics_rejects_routing_ordinary_subagents_to_handoff_reporting(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
@@ -79,8 +89,8 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                 skill_md.read_text(encoding="utf-8")
                 .replace("Read `references/subagent-delegation.md` before ordinary subagent delegation.\n", "")
                 .replace(
-                    "Read `references/experiment-reporting.md` for experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.",
-                    "Read `references/experiment-reporting.md` before subagent delegation or first-attempt, multi-phase, handoff, and guarded-run comparison experiments.",
+                    "Read `references/handoff-reporting.md` for requested handoffs or multi-phase runs.",
+                    "Read `references/handoff-reporting.md` before subagent delegation, requested handoffs, or multi-phase runs.",
                 ),
                 encoding="utf-8",
             )
@@ -125,8 +135,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                     "Operational escalation: performance, cost, migration, observability, or release risk escalates.",
                     "Read `references/core-guard-routing.md`.",
                     "Read `references/subagent-delegation.md` before ordinary subagent delegation.",
-                    "Read `references/experiment-reporting.md` for experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.",
-                    "When token telemetry exists, read `references/token-reporting.md`.",
+                    "Read `references/handoff-reporting.md` for requested handoffs or multi-phase runs.",
                     "Read `references/core-guard-catalog.md`.",
                     "Use a production-evidence run only when L4 evidence is requested.",
                     "",
@@ -178,24 +187,12 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (references / "token-reporting.md").write_text(
+        (references / "handoff-reporting.md").write_text(
             "\n".join(
                 [
-                    "# Token Reporting",
+                    "# Handoff Reporting",
                     "",
-                    "Report total_tokens, input_tokens, cached_input_tokens, cache_write_tokens, noncached_input_tokens = input - cached, output_tokens, and reasoning_output_tokens.",
-                    "Cache writes are input; do not add them to totals.",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
-        (references / "experiment-reporting.md").write_text(
-            "\n".join(
-                [
-                    "# Experiment Reporting",
-                    "",
-                    "Use this file for Boring Backend experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.",
+                    "Use this file for requested Boring Backend handoffs or multi-phase runs.",
                     "",
                     "## Handoff Index",
                     "",
@@ -207,17 +204,12 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                     "- `evidence_path`",
                     "- `command_exit`",
                     "- `known_gap`",
-                    "- `token_usage`",
                     "",
                     "Use handoff-first review. Open the full first report only for a P0-P2 claim that cannot be resolved from the handoff index and cited evidence.",
                     "",
                     "## Delta Output",
                     "",
                     "Reference claim IDs and restate only changed assumptions, disputed claims, P0-P2 findings, unchecked evidence, and new commands/results.",
-                    "",
-                    "## Fairness",
-                    "",
-                    "First-run experiments must not receive postmortem traps. Use the same pre-registered guard list for every variant.",
                     "",
                 ]
             ),
@@ -229,8 +221,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                     "# Subagent Delegation",
                     "",
                     "Pass only task-local context: the user request, mode, allowed catalogs, required evidence commands, and any handoff or changed-file paths.",
-                    "Do not paste prior reports, transcripts, or catalog text.",
-                    "When telemetry is requested, report only the subagent's own `token_usage` once.",
+                    "Do not paste prior reports, transcripts, catalog text, or raw logs. Return findings, `file:line`, command exits, evidence paths, and known gaps; keep full logs in files for on-demand review.",
                     "",
                 ]
             ),
@@ -287,8 +278,8 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                         "name: boring-backend",
                         "description: Use when validating boring-backend verifier fixtures.",
                         "license: MIT",
-                        "allowed-tools:",
-                        "  - shell",
+                        "compatibility: Designed for coding agents with filesystem access.",
+                        "allowed-tools: Read Bash(git:*)",
                         "metadata:",
                         "  short-description: boring-backend fixture",
                         "---",
@@ -302,6 +293,36 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             module.validate_skill_frontmatter(base, issues)
 
             self.assertFalse(issues)
+
+    def test_skill_frontmatter_rejects_invalid_standard_optional_values(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+            base = Path(tmp) / "boring-backend"
+            self.write_minimal_skill(base)
+            (base / "SKILL.md").write_text(
+                "\n".join(
+                    [
+                        "---",
+                        "name: boring-backend",
+                        "description: Use when validating boring-backend verifier fixtures.",
+                        "license:",
+                        f"compatibility: {'x' * 501}",
+                        "allowed-tools:",
+                        "  - shell",
+                        "metadata: not-a-mapping",
+                        "---",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            issues: list[str] = []
+            module.validate_skill_frontmatter(base, issues)
+
+            for field in ("license", "compatibility", "allowed-tools", "metadata"):
+                with self.subTest(field=field):
+                    self.assertTrue(any(field in issue for issue in issues))
 
     def test_openai_metadata_requires_valid_short_description_and_prompt(self):
         module = load_module()
@@ -533,13 +554,12 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             self.assertTrue(any("operational escalation" in issue for issue in issues))
             self.assertTrue(any("Learning Feedback Lens" in issue for issue in issues))
 
-    def test_boring_backend_semantics_require_routing_handoff_l4_and_token_guidance(self):
+    def test_boring_backend_semantics_require_routing_handoff_and_l4_guidance(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "references" / "core-guard-routing.md").unlink()
-            (base / "references" / "token-reporting.md").unlink()
             (base / "SKILL.md").write_text(
                 "\n".join(
                     [
@@ -559,22 +579,43 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             module.validate_boring_backend_semantics(base, issues)
 
             self.assertTrue(any("core-guard-routing.md" in issue for issue in issues))
-            self.assertTrue(any("experiment-reporting.md" in issue for issue in issues))
+            self.assertTrue(any("handoff-reporting.md" in issue for issue in issues))
             self.assertTrue(any("production-evidence" in issue for issue in issues))
-            self.assertTrue(any("noncached_input_tokens" in issue for issue in issues))
 
-    def test_boring_backend_semantics_require_experiment_reporting_boundaries(self):
+    def test_boring_backend_semantics_rejects_runtime_token_accounting(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
-            reporting = base / "references" / "experiment-reporting.md"
-            reporting.write_text("# Experiment Reporting\n", encoding="utf-8")
+            token_reporting = base / "references" / "token-reporting.md"
+            token_reporting.write_text(
+                "# Token Reporting\n\nReport `cached_input_tokens` and `cache_write_tokens`.\n",
+                encoding="utf-8",
+            )
+            skill_md = base / "SKILL.md"
+            skill_md.write_text(
+                skill_md.read_text(encoding="utf-8")
+                + "Read `references/token-reporting.md` when telemetry exists.\n",
+                encoding="utf-8",
+            )
+
+            issues: list[str] = []
+            module.validate_boring_backend_semantics(base, issues)
+
+            self.assertTrue(any("external evaluation tooling" in issue for issue in issues))
+
+    def test_boring_backend_semantics_require_handoff_reporting_boundaries(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+            base = Path(tmp) / "boring-backend"
+            self.write_minimal_skill(base)
+            reporting = base / "references" / "handoff-reporting.md"
+            reporting.write_text("# Handoff Reporting\n", encoding="utf-8")
             (base / "SKILL.md").write_text(
                 (base / "SKILL.md")
                 .read_text(encoding="utf-8")
                 .replace(
-                    "Read `references/experiment-reporting.md` for experiment first attempts, guarded-run comparisons, handoffs, or multi-phase runs.\n",
+                    "Read `references/handoff-reporting.md` for requested handoffs or multi-phase runs.\n",
                     "",
                 ),
                 encoding="utf-8",
@@ -589,7 +630,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             issues: list[str] = []
             module.validate_boring_backend_semantics(base, issues)
 
-            self.assertTrue(any("experiment-reporting.md" in issue for issue in issues))
+            self.assertTrue(any("handoff-reporting.md" in issue for issue in issues))
             self.assertTrue(any("handoff index" in issue for issue in issues))
             self.assertTrue(any("catalog_route" in issue for issue in issues))
 
@@ -640,7 +681,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            reporting = base / "references" / "experiment-reporting.md"
+            reporting = base / "references" / "handoff-reporting.md"
             reporting.write_text(
                 reporting.read_text(encoding="utf-8").replace(
                     "Open the full first report only for a P0-P2 claim that cannot be resolved from the handoff index and cited evidence.",
@@ -660,7 +701,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
-            reporting = base / "references" / "experiment-reporting.md"
+            reporting = base / "references" / "handoff-reporting.md"
             reporting.write_text(
                 reporting.read_text(encoding="utf-8").replace(
                     "Open the full first report only for a P0-P2 claim that cannot be resolved from the handoff index and cited evidence.",
@@ -674,36 +715,29 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
             self.assertTrue(any("P0-P2-only full-report fallback" in issue for issue in issues))
 
-    def test_boring_backend_semantics_require_claim_summary_and_cache_write_tokens(self):
+    def test_boring_backend_semantics_requires_claim_summary(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
-            reporting = base / "references" / "experiment-reporting.md"
+            reporting = base / "references" / "handoff-reporting.md"
             reporting.write_text(
                 reporting.read_text(encoding="utf-8").replace("- `claim_summary`\n", ""),
                 encoding="utf-8",
             )
-            token_reporting = base / "references" / "token-reporting.md"
-            token_reporting.write_text(
-                token_reporting.read_text(encoding="utf-8").replace("cache_write_tokens", ""),
-                encoding="utf-8",
-            )
-
             issues: list[str] = []
             module.validate_boring_backend_semantics(base, issues)
 
             self.assertTrue(any("claim_summary" in issue for issue in issues))
-            self.assertTrue(any("cache_write_tokens" in issue for issue in issues))
 
-    def test_boring_backend_semantics_rejects_experiment_fairness_in_core_catalog(self):
+    def test_boring_backend_semantics_rejects_experiment_fairness_in_runtime(self):
         module = load_module()
         with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
-            guard_catalog = base / "references" / "core-guard-catalog.md"
-            guard_catalog.write_text(
-                guard_catalog.read_text(encoding="utf-8")
+            handoff = base / "references" / "handoff-reporting.md"
+            handoff.write_text(
+                handoff.read_text(encoding="utf-8")
                 + "\nFor first-run experiments, pre-register the same guard list for every variant.\n",
                 encoding="utf-8",
             )
@@ -711,7 +745,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
             issues: list[str] = []
             module.validate_boring_backend_semantics(base, issues)
 
-            self.assertTrue(any("experiment fairness belongs" in issue for issue in issues))
+            self.assertTrue(any("experiment fairness belongs outside runtime" in issue for issue in issues))
 
     def test_boring_backend_semantics_rejects_handoff_detail_in_skill_md(self):
         module = load_module()

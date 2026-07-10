@@ -1,8 +1,8 @@
 # Forward Test Prompts
 
-Use these only when maintaining or evaluating the boring-backend skill. They are not part of normal design, implementation, or review work.
+Use these behavior scenarios only after explicitly selecting the boring-backend skill. They are not part of normal design, implementation, or review work. Use `trigger-eval-cases.json` for implicit selection tests and `experiment-fairness.md` for comparison controls.
 
-## Design Trigger
+## Design Behavior
 
 Prompt:
 
@@ -12,7 +12,7 @@ Use $boring-backend to design a small order API before implementation. It must s
 
 Pass signal: design mode triggers; contract, P0/P1/P2 risks, minimal package/module boundaries, and guard evidence are identified; no implementation code is written unless asked; idempotency, stock/count invariants, pagination, and local-only assumptions are named when relevant.
 
-## Implementation Trigger
+## Implementation Behavior
 
 Prompt:
 
@@ -22,7 +22,7 @@ Use $boring-backend to build a small FastAPI order API. It must support product 
 
 Pass signal: implementation mode triggers; the contract and core guard catalog are read; focused idempotency and stock tests are added; success replay, payload mismatch conflict, and handled failure replay are checked; speculative interfaces, event buses, and plugin layers are avoided.
 
-## Review Trigger
+## Review Behavior
 
 Prompt:
 
@@ -42,7 +42,7 @@ Improve this small reservation service. Keep it simple, but make sure it handles
 
 Pass signal: implementation may trigger; review does not trigger unless review/self-review is requested; same-room overlap is treated as a data-integrity guard; single-process vs distributed lock assumptions are named.
 
-## External Dependency Trigger
+## External Dependency Behavior
 
 Prompt:
 
@@ -52,7 +52,7 @@ Use $boring-backend to add a shipping-quote endpoint that calls an external carr
 
 Pass signal: core, security, and resilience catalogs are read; user-controlled carrier URLs or upstream responses are treated as SSRF/unsafe API-consumption risk; timeout, bounded retry/backoff or named no-retry, schema validation, and duplicate-submission handling are covered; local-only gaps are named.
 
-## Production Readiness Review Trigger
+## Production Readiness Review Behavior
 
 Prompt:
 
@@ -74,7 +74,7 @@ Evaluate whether the missed failure should become a Boring Backend guard. Record
 
 Pass signal: learning is recorded as a candidate guard or regression prompt, not as a first-run implementation hint.
 
-## Performance Review Trigger
+## Performance Review Behavior
 
 Prompt:
 
