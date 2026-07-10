@@ -2,6 +2,6 @@
 
 Read this file before delegating a Boring Backend task.
 
-Pass only task-local context: the user request, mode, allowed catalogs, required evidence commands, and any handoff or changed-file paths.
+Pass the user request; applicable repository instructions; assigned scope and paths; applicable skill path; mode; evidence constraints; and handoff paths. Let the agent route catalogs unless the task is intentionally narrow.
 
-Do not paste prior reports, full transcripts, catalog text, or raw logs. Return findings, `file:line`, command exits, evidence paths, and known gaps; keep full logs in files for on-demand review.
+For independent validation, provide raw artifacts and no prior conclusions. Otherwise include only task-required context. Return findings with `file:line`, commands, exits, evidence, and gaps. Retain full logs only when needed; return paths, not log contents.

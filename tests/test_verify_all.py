@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import yaml
+
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "verify_all.py"
@@ -16,6 +18,10 @@ def load_module():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def load_yaml(path):
+    return yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 
 
 class VerifyAllTests(unittest.TestCase):
@@ -60,29 +66,117 @@ class VerifyAllTests(unittest.TestCase):
         self.assertTrue(dependabot_path.exists(), "missing automated dependency updates")
         self.assertTrue(requirements_path.exists(), "missing development dependency manifest")
         workflow = workflow_path.read_text(encoding="utf-8")
-        dependabot = dependabot_path.read_text(encoding="utf-8")
+        workflow_config = load_yaml(workflow_path)
+        dependabot_config = load_yaml(dependabot_path)
         requirements = requirements_path.read_text(encoding="utf-8")
 
-        for runner in ("ubuntu-latest", "macos-latest", "windows-latest"):
-            with self.subTest(runner=runner):
-                self.assertIn(runner, workflow)
-        self.assertIn("push:\n    branches: [main]", workflow)
-        self.assertIn("pull_request:", workflow)
+        self.assertEqual(workflow_config["permissions"], {"contents": "read"})
+        triggers = workflow_config["on"]
+        self.assertEqual(triggers["push"]["branches"], ["main"])
+        self.assertIn("pull_request", triggers)
         self.assertIn("concurrency:", workflow)
         self.assertIn("cancel-in-progress: true", workflow)
-        self.assertRegex(workflow, r"(?m)^[ \t]+- uses: actions/checkout@[0-9a-f]{40}(?:[ \t]+# .+)?$")
-        self.assertRegex(workflow, r"(?m)^[ \t]+- uses: actions/setup-python@[0-9a-f]{40}(?:[ \t]+# .+)?$")
-        self.assertIn("python-version: '3.13'", workflow)
-        self.assertIn("python -m pip install -r requirements-dev.txt", workflow)
-        self.assertIn("python scripts/verify_all.py", workflow)
-        self.assertIn('package-ecosystem: "github-actions"', dependabot)
-        self.assertIn('package-ecosystem: "pip"', dependabot)
+
+        jobs = workflow_config["jobs"]
+        self.assertEqual(set(jobs), {"verify", "verify-minimum-python"})
+
+        matrix_job = jobs["verify"]
+        self.assertEqual(matrix_job["name"], "verify (${{ matrix.os }})")
+        self.assertEqual(
+            matrix_job["strategy"]["matrix"]["os"],
+            ["ubuntu-latest", "macos-latest", "windows-latest"],
+        )
+        self.assertEqual(matrix_job["runs-on"], "${{ matrix.os }}")
+
+        minimum_job = jobs["verify-minimum-python"]
+        self.assertEqual(minimum_job["name"], "verify-minimum-python")
+        self.assertEqual(minimum_job["runs-on"], "ubuntu-latest")
+
+        expected_python_versions = {"verify": "3.14", "verify-minimum-python": "3.11"}
+        for job_id, job in jobs.items():
+            with self.subTest(job=job_id):
+                self.assertEqual(job["timeout-minutes"], "10")
+                action_steps = [step for step in job["steps"] if "uses" in step]
+                self.assertTrue(action_steps)
+                for step in action_steps:
+                    self.assertRegex(step["uses"], r"\A[^@]+@[0-9a-f]{40}\Z")
+
+                checkout = next(
+                    step for step in action_steps if step["uses"].startswith("actions/checkout@")
+                )
+                self.assertEqual(checkout.get("with", {}).get("persist-credentials"), "false")
+
+                setup_python = next(
+                    step for step in action_steps if step["uses"].startswith("actions/setup-python@")
+                )
+                self.assertEqual(
+                    setup_python.get("with", {}).get("python-version"),
+                    expected_python_versions[job_id],
+                )
+                run_steps = [step["run"] for step in job["steps"] if "run" in step]
+                self.assertIn("python -m pip install -r requirements-dev.txt", run_steps)
+                self.assertIn("python scripts/verify_all.py", run_steps)
+
+        updates = {entry["package-ecosystem"]: entry for entry in dependabot_config["updates"]}
+        self.assertEqual(set(updates), {"github-actions", "pip"})
+        expected_schedule = {
+            "interval": "weekly",
+            "day": "monday",
+            "time": "09:00",
+            "timezone": "Asia/Seoul",
+        }
+        for ecosystem, update in updates.items():
+            with self.subTest(ecosystem=ecosystem):
+                self.assertEqual(update["directory"], "/")
+                self.assertEqual(update["schedule"], expected_schedule)
+                self.assertEqual(update["open-pull-requests-limit"], "5")
+
         requirement_lines = [
             line.strip() for line in requirements.splitlines() if line.strip() and not line.startswith("#")
         ]
         pyyaml_pins = [line for line in requirement_lines if line.lower().startswith("pyyaml")]
         self.assertEqual(len(pyyaml_pins), 1)
         self.assertRegex(pyyaml_pins[0], r"\APyYAML==[0-9]+(?:\.[0-9]+)+(?:[A-Za-z0-9.+-]*)\Z")
+
+    def test_readmes_declare_supported_cpython_range(self):
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        korean_readme = (REPO / "README.ko.md").read_text(encoding="utf-8")
+
+        self.assertIn("CPython 3.11 through 3.14", readme)
+        self.assertIn("Newer CPython versions are unverified", readme)
+        self.assertIn("CPython 3.11부터 3.14까지", korean_readme)
+        self.assertIn("더 최신 CPython 버전은 검증되지 않았습니다", korean_readme)
+
+    def test_contributor_security_and_pull_request_guidance(self):
+        contributing_path = REPO / "CONTRIBUTING.md"
+        security_path = REPO / ".github" / "SECURITY.md"
+        pull_request_template_path = REPO / ".github" / "pull_request_template.md"
+
+        for path in (contributing_path, security_path, pull_request_template_path):
+            with self.subTest(path=path.name):
+                self.assertTrue(path.exists())
+
+        contributing = contributing_path.read_text(encoding="utf-8")
+        self.assertIn("`skills/boring-backend/`", contributing)
+        self.assertIn("`.agents/skills/boring-backend/`", contributing)
+        self.assertIn("`.claude/skills/boring-backend/`", contributing)
+        self.assertIn("`validation/`", contributing)
+        self.assertIn("runtime skill", contributing)
+        self.assertIn("python scripts/verify_all.py", contributing)
+        self.assertIn("secrets", contributing.lower())
+
+        security = security_path.read_text(encoding="utf-8").lower()
+        self.assertIn("private vulnerability reporting", security)
+        self.assertIn("do not open a public issue", security)
+        self.assertIn("secrets", security)
+
+        pull_request_template = pull_request_template_path.read_text(encoding="utf-8")
+        checklist_lines = [
+            line.lower() for line in pull_request_template.splitlines() if line.startswith("- [ ]")
+        ]
+        for required_term in ("source", "mirror", "tests", "evaluation", "runtime", "secrets"):
+            with self.subTest(checklist_term=required_term):
+                self.assertTrue(any(required_term in line for line in checklist_lines))
 
     def test_public_package_has_license_and_no_stale_forward_test_artifacts(self):
         self.assertTrue((REPO / "LICENSE").exists())
@@ -113,6 +207,9 @@ class VerifyAllTests(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         self.assertGreaterEqual(sum(case["should_trigger"] is True for case in cases), 8)
         self.assertGreaterEqual(sum(case["should_trigger"] is False for case in cases), 8)
+        cases_by_id = {case["id"]: case for case in cases}
+        self.assertIs(cases_by_id["openapi-nullability-contract"]["should_trigger"], True)
+        self.assertIs(cases_by_id["backend-guide-prose-copy"]["should_trigger"], False)
         for case in cases:
             with self.subTest(case=case["id"]):
                 self.assertIsInstance(case["should_trigger"], bool)

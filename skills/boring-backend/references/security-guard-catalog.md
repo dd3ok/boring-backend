@@ -6,7 +6,7 @@ Read this file only when the task touches auth, roles, ownership, public input, 
 
 | Risk | Implement |
 |---|---|
-| Object authorization | Check owner/admin access at the service/use-case boundary for every read, update, delete, and state transition that accepts a user-controlled object ID. |
+| Object authorization | Enforce caller/tenant scope at a trusted server-side boundary for every object read, update, delete, and state transition. Scope list/search queries before retrieval; never rely on UI filtering or post-fetch filtering for authorization. |
 | Property authorization | Use request/response DTO allowlists. Do not bind public input directly onto persistence entities when fields include role, owner, price, balance, status, internal notes, or audit fields. |
 | Function authorization | Protect privileged routes and admin functions independently from UI visibility. Tests should call the endpoint directly with insufficient privileges. |
 | Auth failure mode | Invalid, expired, malformed, missing, or tampered credentials fail closed with the expected 401/403. Disable unused framework auth fallbacks or prove they cannot authenticate protected APIs. |
@@ -19,7 +19,7 @@ Read this file only when the task touches auth, roles, ownership, public input, 
 
 ## Review Lens
 
-- Can a caller access another user's object by changing an ID?
+- Can a caller access another user's object by changing an ID, or see out-of-scope rows through a read/list/search query?
 - Can public input set server-owned fields by mass assignment?
 - Can a non-admin call an admin function by skipping the UI?
 - Do token failures and auth fallback attempts return the intended status?

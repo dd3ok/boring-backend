@@ -31,6 +31,7 @@ The skill uses one trigger with four internal modes:
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
 - `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
+- `scripts/run_skill_eval.py`: runs opt-in provider adapters against the trigger suite and writes bounded protocol output under `reports/`.
 - `scripts/verify_all.py`: runs mirror and repository checks.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
 - `reports/`: ignored workspace for generated evaluation output; retained only as an empty local target.
@@ -57,6 +58,8 @@ Do not install `.agents/`, `.claude/`, `validation/`, `reports/`, or `scripts/` 
 
 ## Verification
 
+Verification supports CPython 3.11 through 3.14. Newer CPython versions are unverified.
+
 Install the development dependency in a project-local Python 3 virtual environment:
 
 ```text
@@ -71,7 +74,23 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-GitHub Actions runs the same entrypoint on Ubuntu, macOS, and Windows.
+GitHub Actions runs the same entrypoint on CPython 3.14 for Ubuntu, macOS, and Windows, plus CPython 3.11 on Ubuntu.
+
+## Evaluation
+
+Real agent evaluations are opt-in and stay outside CI. Adapters are trusted local programs; the harness validates its protocol but is not a sandbox. An adapter must not create background descendants or write outside the request's run directory. Timeout cleanup terminates the adapter process tree on a best-effort basis.
+
+The harness starts the adapter from the repository root, so relative adapter arguments resolve there. The adapter receives `--request` and `--response` JSON paths, must run the evaluated agent in the request's `paths.workspace`, and must send only the request's top-level `query` to that agent. It must not inspect the evaluation suite, labels, case ids, rationale, or expected result. Metrics from an adapter that violates these rules are untrusted. Activation, catalog reads, and usage must come from vendor traces or APIs and remain `null` when unavailable.
+
+Case/trial blocks and per-block variant order are deterministically randomized from `--seed`; every variant in a block receives the same paired seed. The response object accepts `activation` (`bool|null`), `catalogs` (`string[]|null`), `usage` (`object|null`), run-relative `artifacts`, and adapter `metadata`. Each usage value must be `null` or an integer from 0 through 9,007,199,254,740,991. The harness discards stdout, concurrently drains stderr while retaining at most a 2 KiB excerpt, limits JSON nesting to 100, reads at most 64 KiB plus one byte from the response, and accepts at most 32 declared artifact files totaling 16 MiB.
+
+Each output includes the request/response run artifacts, bounded stderr excerpts, JSONL results, summary, and a manifest. The manifest records the Git commit and dirty state, a worktree/diff digest when dirty, the harness hash, skill hashes, and hashes for runner command arguments that resolve to files.
+
+```text
+python scripts/run_skill_eval.py --output reports/eval/run-001 --trials 3 --seed 17 --variant current=skills/boring-backend --variant baseline --runner-exe python --runner-arg path/to/vendor_adapter.py --runner-meta vendor=example --runner-meta model=example
+```
+
+The repository includes only a deterministic test fixture for the protocol, not a real vendor adapter. A fixture run proves harness behavior, not skill quality or token savings. Keep `forward-test-prompts.md` as a human or separately graded behavior rubric.
 
 ## License
 
