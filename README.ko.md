@@ -67,7 +67,7 @@ boring-backend/
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`, `CONTRIBUTING.md`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
+저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 
 ## 검증
 

@@ -65,7 +65,7 @@ Common destination paths for the same folder:
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`, and `CONTRIBUTING.md` are repository maintenance files, not runtime skill contents.
+Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, and `requirements-dev.txt` are repository maintenance files, not runtime skill contents.
 
 ## Verification
 
