@@ -478,8 +478,10 @@ def prepare_work_root(
     requested: Path | None, output: Path, skill_name: str
 ) -> tuple[Path, bool]:
     owned = requested is None
+    created = False
     if owned:
         path = Path(tempfile.mkdtemp(prefix="boring-backend-eval-"))
+        created = True
     else:
         path = requested.expanduser()
         if path.is_symlink():
@@ -491,6 +493,7 @@ def prepare_work_root(
                 raise EvalError(f"work root directory must be empty: {path}")
         else:
             path.mkdir(parents=True)
+            created = True
 
     resolved = path.resolve()
     try:
@@ -498,7 +501,7 @@ def prepare_work_root(
             raise EvalError(f"work root must not be a Windows reparse point: {resolved}")
         validate_work_root(resolved, output, skill_name)
     except Exception:
-        if owned:
+        if created:
             shutil.rmtree(resolved, ignore_errors=True)
         raise
     return resolved, owned

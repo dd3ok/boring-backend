@@ -451,6 +451,7 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("same-name skill discovery ancestors", completed.stderr)
             self.assertIn(str((contaminating_skill / "SKILL.md").resolve()), completed.stderr)
+            self.assertFalse(work_root.exists())
 
     def test_rejects_work_root_inside_the_repository_even_for_another_skill(self):
         module = load_module()
