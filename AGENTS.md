@@ -14,4 +14,4 @@ python3 scripts/verify_all.py  # macOS/Linux
 py -3 scripts/verify_all.py    # Windows
 ```
 
-Do not install skills, plugins, packages, or test tools globally from this repository. Keep any generated verification output under `reports/`.
+Do not install skills, plugins, packages, or test tools globally from this repository. Do not commit generated evaluation output.

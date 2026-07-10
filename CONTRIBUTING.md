@@ -4,7 +4,7 @@
 
 - Edit `skills/boring-backend/` first. Do not make source changes in the mirrors.
 - Sync each changed source file to `.agents/skills/boring-backend/` and `.claude/skills/boring-backend/` before submitting.
-- Keep evaluation inputs under `validation/`, executable tooling under `scripts/`, and deterministic fixtures/tests under `tests/`; all stay outside the runtime skill. Generated output belongs under `reports/`.
+- Keep lightweight evaluation inputs under `validation/`, verification tooling under `scripts/`, and deterministic repository tests under `tests/`; all stay outside the runtime skill. Do not commit generated evaluation output.
 
 ## Verification
 

@@ -62,7 +62,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_selection_description_boundaries(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -81,7 +81,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_selection_description_requires_ui_as_a_word(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -100,7 +100,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_environment_specific_l4_and_real_db_l2(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             routing = base / "references" / "core-guard-routing.md"
@@ -126,7 +126,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_review_only_no_edit_and_green_authorized_fixes(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -146,7 +146,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_rejects_contradictory_review_only_edit_permission(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -163,7 +163,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_scaled_output_without_synthetic_catalog_route(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -189,7 +189,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_full_idempotency_contract(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             catalog = base / "references" / "core-guard-catalog.md"
@@ -222,7 +222,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_rejects_a_reference_only_reachable_through_another_reference(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -241,7 +241,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_rejects_routing_ordinary_subagents_to_handoff_reporting(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -262,7 +262,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_semantics_requires_an_explicit_ordinary_subagent_route(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -415,7 +415,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_skill_frontmatter_requires_name_description_and_no_extra_keys(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -440,7 +440,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_skill_frontmatter_rejects_empty_mapping(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             base.mkdir()
             (base / "SKILL.md").write_text("---\n---\n\n# Empty\n", encoding="utf-8")
@@ -453,7 +453,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_skill_frontmatter_allows_standard_optional_keys(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -481,7 +481,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_skill_frontmatter_rejects_invalid_standard_optional_values(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -511,7 +511,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_openai_metadata_requires_valid_short_description_and_prompt(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             agents = base / "agents"
             agents.mkdir(parents=True)
@@ -536,7 +536,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_openai_metadata_rejects_invalid_yaml(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             agents = base / "agents"
             agents.mkdir(parents=True)
@@ -561,7 +561,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_openai_metadata_requires_interface_mapping_and_strings(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             agents = base / "agents"
             agents.mkdir(parents=True)
@@ -587,7 +587,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_reference_structure_rejects_nested_reference_files_and_links(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             nested = base / "references" / "nested"
             nested.mkdir(parents=True)
@@ -615,7 +615,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_reference_structure_checks_markdown_link_targets(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             base.mkdir()
             (base / "SKILL.md").write_text(
@@ -640,7 +640,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_reference_structure_allows_repo_local_shared_common_references(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             base = root / "skills" / "boring-backend"
             common = root / "skills" / "boring-backend-common"
@@ -674,7 +674,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_reference_structure_rejects_long_files_nested_links_and_path_escape(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             references = base / "references"
             references.mkdir(parents=True)
@@ -705,7 +705,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_learning_feedback_prompt_must_stay_out_of_runtime_references(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             references = base / "references"
             references.mkdir(parents=True)
@@ -721,7 +721,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_operational_escalation_evidence_levels_and_no_learning_prompt(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -741,7 +741,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_routing_handoff_and_l4_guidance(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "references" / "core-guard-routing.md").unlink()
@@ -769,7 +769,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_rejects_runtime_token_accounting(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             token_reporting = base / "references" / "token-reporting.md"
@@ -791,7 +791,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_handoff_reporting_boundaries(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             reporting = base / "references" / "handoff-reporting.md"
@@ -814,7 +814,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_designated_handoff_and_identity_validation(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             reporting = base / "references" / "handoff-reporting.md"
@@ -853,7 +853,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_small_subagent_boundaries(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "references" / "subagent-delegation.md").write_text(
@@ -868,7 +868,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_subagent_autonomy_and_independent_inputs(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             delegation = base / "references" / "subagent-delegation.md"
@@ -887,7 +887,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_security_route_coverage(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             routing = base / "references" / "core-guard-routing.md"
@@ -906,7 +906,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_trusted_auth_and_scoped_list_reads(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             security = base / "references" / "security-guard-catalog.md"
@@ -923,7 +923,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_rejects_guarded_run_comparison_runtime_phrase(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             catalog = base / "references" / "core-guard-catalog.md"
@@ -940,7 +940,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_limit_p0_to_artifact_defects(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             catalog = base / "references" / "core-guard-catalog.md"
@@ -965,7 +965,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_require_subagent_route_and_material_claim_fallback(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             skill_md = base / "SKILL.md"
@@ -993,7 +993,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_does_not_limit_fuller_evidence_to_p0_p2(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             reporting = base / "references" / "handoff-reporting.md"
@@ -1012,7 +1012,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_requires_claim_summary(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             reporting = base / "references" / "handoff-reporting.md"
@@ -1027,7 +1027,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_rejects_experiment_fairness_in_runtime(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             handoff = base / "references" / "handoff-reporting.md"
@@ -1044,7 +1044,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_boring_backend_semantics_rejects_hardcoded_handoff_path(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -1060,7 +1060,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_check_mirror_flags_file_set_mismatch_and_hash_drift(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = root / "source"
             mirror = root / "mirror"
@@ -1079,7 +1079,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_check_skill_package_flags_stale_and_semantic_failures(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp) / "boring-backend"
             self.write_minimal_skill(base)
             (base / "SKILL.md").write_text(
@@ -1103,7 +1103,7 @@ class VerifyBoringBackendSkillMirrorsTests(unittest.TestCase):
 
     def test_main_passes_against_temp_repo_with_synced_mirrors(self):
         module = load_module()
-        with tempfile.TemporaryDirectory(dir=REPO / "reports") as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source_root = root / "skills"
             mirror_roots = (root / ".agents" / "skills", root / ".claude" / "skills")
