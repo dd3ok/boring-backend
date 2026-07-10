@@ -31,7 +31,6 @@ Explicit environment-specific evidence requests use a conditional safety referen
 - `skills/boring-backend/`: source skill package.
 - `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
-- `.codex-plugin/plugin.json`: separate plugin packaging manifest; not part of the runtime skill subtree.
 - `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
 - `scripts/verify_all.py`: runs mirror and repository checks.
 - `scripts/verify_boring_backend_skill_mirrors.py`: verifies source and mirror packages stay in sync.
@@ -41,14 +40,24 @@ Explicit environment-specific evidence requests use a conditional safety referen
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --ref v1.1.0 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.1.1 --path skills/boring-backend
 ```
 
-Manual install is also path-only: copy `skills/boring-backend` into your runtime's skills directory.
+The install target contains the complete runtime package:
 
-Path-only installation is the direct install boundary. `.codex-plugin/plugin.json` packages the same `skills/` tree for a Codex plugin marketplace, but this repository does not publish a marketplace. `agents/openai.yaml` is skill metadata, not a plugin manifest.
+```text
+boring-backend/
+|-- SKILL.md
+|-- LICENSE
+|-- agents/openai.yaml
+`-- references/*.md
+```
 
-Common path-only local targets:
+These files are sufficient for the full skill behavior. `SKILL.md` routes to the bundled references only when needed; repository tests, evaluation inputs, and verification scripts are not runtime dependencies.
+
+For a manual install, copy the entire `skills/boring-backend` folder into a destination below. Do not copy only `SKILL.md`, because its linked references are part of the behavior.
+
+Common destination paths for the same folder:
 
 | Runtime | Project scope | User scope |
 |---|---|---|
@@ -56,7 +65,7 @@ Common path-only local targets:
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 
-Do not install `.agents/`, `.claude/`, `validation/`, or `scripts/` as runtime skills. They are development mirrors, evaluation assets, and verification utilities.
+Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`, and `CONTRIBUTING.md` are repository maintenance files, not runtime skill contents.
 
 ## Verification
 

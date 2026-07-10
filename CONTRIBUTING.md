@@ -7,6 +7,7 @@
 - Keep lightweight evaluation inputs under `validation/`, verification tooling under `scripts/`, and deterministic repository tests under `tests/`; all stay outside the runtime skill.
 - Run behavior cases for runtime instruction or expected-output changes and trigger cases for discovery metadata or activation-boundary changes. Follow `validation/experiment-fairness.md`.
 - Keep `skills/boring-backend/LICENSE` identical to the root `LICENSE` so path-only installations retain the license terms.
+- Keep distribution path-only. Do not add plugin or marketplace packaging.
 
 ## Verification
 
@@ -25,9 +26,5 @@ The check names in `.github/workflows/verify.yml` are bound to the repository's 
 ## Pull Requests
 
 Keep changes scoped and explain their evidence. Do not commit secrets, credentials, tokens, or sensitive report data.
-
-Keep plugin packaging in `.codex-plugin/plugin.json` and outside the path-only runtime skill boundary.
-
-The plugin manifest is not a public marketplace listing. Bump its `0.x` version when the manifest or bundled skill behavior changes; public submission requires separate vendor review and assets.
 
 For a release, publish only from a reviewed `main` commit after required checks and release-relevant evaluations pass. Prefer a signed annotated `vX.Y.Z` tag, never move or reuse a published tag, and enable GitHub immutable releases when the repository supports them.
