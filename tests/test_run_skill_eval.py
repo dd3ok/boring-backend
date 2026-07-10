@@ -413,7 +413,10 @@ class RunSkillEvalTests(unittest.TestCase):
             self.assertEqual(Path(manifest["execution"]["work_root"]), work_root.resolve())
             self.assertTrue(work_root.is_dir())
             work_run_dir = work_root / "runs" / result["run_id"]
-            self.assertEqual(Path(result["response"]["metadata"]["cwd"]), work_run_dir)
+            self.assertEqual(
+                Path(result["response"]["metadata"]["cwd"]).resolve(),
+                work_run_dir.resolve(),
+            )
 
     def test_rejects_work_root_with_same_name_project_skill_ancestor(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -447,7 +450,7 @@ class RunSkillEvalTests(unittest.TestCase):
 
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("same-name skill discovery ancestors", completed.stderr)
-            self.assertIn(str(contaminating_skill / "SKILL.md"), completed.stderr)
+            self.assertIn(str((contaminating_skill / "SKILL.md").resolve()), completed.stderr)
 
     def test_rejects_work_root_inside_the_repository_even_for_another_skill(self):
         module = load_module()
