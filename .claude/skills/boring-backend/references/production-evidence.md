@@ -16,4 +16,4 @@ Report the target and claim, permission/approval basis, sources or actions, capt
 
 ## Boundary
 
-Real DB integration is integration evidence, not production evidence. Without an explicit environment-specific request, implement or review local and risk-specific guards and name production gaps. Do not turn ordinary CRUD work into load testing.
+Real DB integration is integration evidence, not production evidence. Without an explicit environment-specific request, implement or review local and risk-specific controls and name production gaps. Do not turn ordinary CRUD work into load testing.

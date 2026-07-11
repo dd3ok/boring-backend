@@ -30,7 +30,7 @@
         "Selects review mode, orders findings by impact, grounds them in file locations, and leaves both files unchanged.",
         "Identifies the missing tenant ownership check and the unscoped idempotency replay without a request fingerprint or payload-mismatch rejection.",
         "Identifies non-positive quantity handling, process-local state, and concurrent stock/order-ID races as integrity or deployment risks.",
-        "Reports the existing test result if run and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency guards."
+        "Reports the existing test result if run and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency controls."
       ],
       "input_files": [
         "validation/fixtures/review-order-service/order_service.py",
@@ -52,7 +52,7 @@
       "prompt": "Use $boring-backend to design a small shipping-quote endpoint that calls an external carrier API from user input and stores the selected quote. No source files are provided. Return the design and evidence plan without creating files or claiming production readiness.",
       "expected_behavior": [
         "Selects design mode, creates no files, and does not claim production evidence.",
-        "Applies core, security, and resilience guards and treats user-controlled destinations and responses as SSRF or unsafe-consumption risks.",
+        "Applies core, security, and resilience controls and treats user-controlled destinations and responses as SSRF or unsafe-consumption risks.",
         "Covers timeouts, bounded retry/backoff or an explicit no-retry decision, response validation, duplicate submissions, and local-only evidence gaps."
       ],
       "input_files": []
@@ -61,7 +61,7 @@
       "id": "production-readiness-plan",
       "prompt": "Use $boring-backend to define a pre-launch review plan for an API when no implementation or environment evidence is provided. Focus on production readiness, architecture, security, scalability, deployment, observability, and resource risk. Do not create files or claim that the API is ready.",
       "expected_behavior": [
-        "Applies operations and relevant guard criteria, creates no files, and leaves absent evidence unknown.",
+        "Applies operations and relevant risk-control criteria, creates no files, and leaves absent evidence unknown.",
         "Separates local verification from production evidence and covers observability, rollout/rollback, supply chain, performance, and cost/resource risk.",
         "Routes compatibility and backup/restore questions to their dedicated guidance when relevant."
       ],
@@ -71,7 +71,7 @@
       "id": "performance-review-plan",
       "prompt": "Use $boring-backend to define a performance review plan for a product search/list API before a high-traffic launch. No code, query plans, or measurements are provided. Focus on pagination, query shape, indexes, N+1 risk, payload size, cache safety, pool limits, and the evidence needed for performance claims. Do not create files.",
       "expected_behavior": [
-        "Applies performance guard criteria, creates no files, and keeps missing code and measurements unknown.",
+        "Applies performance risk-control criteria, creates no files, and keeps missing code and measurements unknown.",
         "Distinguishes bounded endpoint/query design from measured latency or throughput evidence.",
         "Does not require microbenchmarks unless hot-path optimization or explicit latency/throughput claims are in scope."
       ],
@@ -102,7 +102,7 @@
       "id": "sensitive-ticket-flow-design",
       "prompt": "Use $boring-backend to design backend controls for a limited-ticket reservation API where valid accounts and bots may hoard inventory, replay requests, evade quotas, or overload the flow. Return a design and evidence plan without creating files.",
       "expected_behavior": [
-        "Treats the reservation endpoint as a sensitive business flow and applies security plus core integrity guards.",
+        "Treats the reservation endpoint as a sensitive business flow and applies security plus core integrity controls.",
         "Selects proportionate server-side controls from the threat and impact, such as actor or resource limits, velocity or state rules, replay or concurrency controls, anti-automation or step-up measures, and abuse telemetry, without requiring every mechanism.",
         "Names focused abuse and concurrency evidence, creates no files, and does not rely on UI friction alone."
       ],

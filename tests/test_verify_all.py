@@ -103,6 +103,51 @@ class VerifyAllTests(unittest.TestCase):
                 self.assertIn("python3 scripts/verify_all.py", text)
                 self.assertIn("py -3 scripts/verify_all.py", text)
 
+    def test_docs_distinguish_discovery_editing_and_vendor_install_paths(self):
+        readmes = [
+            (REPO / "README.md").read_text(encoding="utf-8"),
+            (REPO / "README.ko.md").read_text(encoding="utf-8"),
+        ]
+        install_paths = (
+            "$HOME/.agents/skills/boring-backend",
+            "~/.claude/skills/boring-backend",
+            "~/.gemini/config/skills/boring-backend",
+            "~/.gemini/antigravity-cli/skills/boring-backend",
+        )
+        for text in readmes:
+            for install_path in install_paths:
+                with self.subTest(install_path=install_path):
+                    self.assertIn(install_path, text)
+
+        guidance = (REPO / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("repository-discovered `boring-backend` skill", guidance)
+        self.assertIn("canonical editable source, not a discovery path", guidance)
+        self.assertIn("do not read both copies", guidance)
+        self.assertIn(".agents/skills/boring-backend/", guidance)
+        self.assertIn(".claude/skills/boring-backend/", guidance)
+
+    def test_runtime_and_docs_avoid_ambiguous_guard_phrases(self):
+        runtime = REPO / "skills" / "boring-backend"
+        paths = (
+            *runtime.rglob("*.md"),
+            runtime / "agents" / "openai.yaml",
+            REPO / "README.md",
+            REPO / "README.ko.md",
+            REPO / "validation" / "trigger-eval-cases.json",
+            REPO / "validation" / "behavior-eval-cases.json",
+        )
+        catalog_name = re.compile(
+            r"\b(?:core|security|data lifecycle|performance|resilience|operations|"
+            r"compatibility governance) guard catalog\b",
+            re.IGNORECASE,
+        )
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            text = re.sub(r"\]\([^)]+\)", "]", text)
+            text = catalog_name.sub("", text)
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotRegex(text, r"\b(?:guard|guards|guardrail|guardrails)\b")
+
     def test_ci_covers_platforms_and_pins_actions(self):
         workflow_path = REPO / ".github" / "workflows" / "verify.yml"
         workflow = workflow_path.read_text(encoding="utf-8")

@@ -10,11 +10,11 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 
 이 스킬은 다음 관점을 함께 사용합니다.
 
-- 테스트를 의식한 문제 정의: happy path보다 실패 모드에서 시작합니다. 가능한 경우 모든 guard는 실행 가능한 증거로 끝나야 합니다. 정적 리뷰와 체크리스트도 도움이 되지만, 테스트나 smoke run이 없으면 신뢰도는 낮게 봅니다.
+- 테스트를 의식한 문제 정의: 정상 동작보다 실패 모드에서 시작합니다. 가능하면 중요한 위험 통제마다 실행 가능한 검증 근거를 남깁니다. 정적 리뷰와 체크리스트도 도움이 되지만, 테스트나 간단 실행 검증이 없으면 신뢰도는 낮게 봅니다.
 - 에이전트 작업 위생: 변경은 작게 유지하고, 가정은 명시하며, 가장 작은 작동 경로를 선택합니다. 성공 기준은 에이전트가 실제로 실행할 수 있는 명령으로 정의합니다.
 - SOLID와 YAGNI의 균형: 라우팅, 도메인 규칙, 영속성, DTO, 에러 매핑처럼 현재 계약에 필요한 책임은 분리합니다. 반대로 미래 확장을 위한 인터페이스, 팩토리, 전략 패턴, 플러그인 계층은 현재 필요하지 않으면 만들지 않습니다.
 
-의도한 장점은 트리거를 하나로 유지하면서도 내부 모드로 설계, 구현, 리뷰를 나누는 것입니다. 이렇게 하면 발견과 호출은 단순하게 유지하면서도 정확성, 보안, 데이터 무결성, 상태 코드, 성능, 운영 guardrail을 함께 확인할 수 있습니다.
+의도한 장점은 트리거를 하나로 유지하면서도 내부 모드로 설계, 구현, 리뷰를 나누는 것입니다. 이렇게 하면 발견과 호출은 단순하게 유지하면서도 정확성, 보안, 데이터 무결성, 상태 코드, 성능, 운영 안전장치를 함께 확인할 수 있습니다.
 
 ## Skill
 
@@ -22,8 +22,8 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 
 이 스킬은 하나의 트리거 아래에서 세 가지 모드로 동작합니다.
 
-- Design: 구현 전에 API 계약, 불변식, guard 전략, 트레이드오프, 필요한 증거 수준을 정리합니다.
-- Implementation: 범위를 통제하면서 API/service 코드를 구현하고, 테스트와 guard evidence를 남깁니다.
+- Design: 구현 전에 API 계약, 불변식, 위험 통제, 트레이드오프, 필요한 검증 수준을 정리합니다.
+- Implementation: 범위를 통제하면서 API/service 코드를 구현하고, 테스트와 위험 통제의 검증 근거를 남깁니다.
 - Review: 신뢰성, 보안, 데이터 무결성, 성능, 호환성, 운영 리스크를 영향도 순으로 보고합니다.
 
 환경별 운영 증거를 명시적으로 요청한 경우에는 침습적 작업 전에 조건부 안전 reference를 읽습니다.
@@ -31,7 +31,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 ## 구조
 
 - `skills/boring-backend/`: 원본 skill 패키지입니다.
-- `.agents/skills/boring-backend/`: Codex/Antigravity 스타일의 프로젝트 로컬 미러입니다.
+- `.agents/skills/boring-backend/`: Codex와 Antigravity용 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
@@ -42,7 +42,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
 ```text
---repo dd3ok/boring-backend --ref v1.2.0 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
 ```
 
 설치 대상에는 완전한 runtime 패키지만 들어 있습니다.
@@ -63,9 +63,10 @@ boring-backend/
 
 | Runtime | 프로젝트 범위 | 사용자 범위 |
 |---|---|---|
-| Codex / Agents | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
+| Codex | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
-| Antigravity | `.agents/skills/boring-backend` | 제품/버전별로 다름; 프로젝트 범위 권장 |
+| Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
+| Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
 
 저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 

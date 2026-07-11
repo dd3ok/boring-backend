@@ -8,11 +8,11 @@ Boring Backend is a compact skill for AI coding agents that design, implement, o
 
 Boring Backend is built for AI coding agents that can over-design, miss edge cases, or overstate confidence. It intentionally blends:
 
-- Test-aware problem framing: start from failure modes, not happy paths. Every guard should end in runnable evidence when possible. Static review and checklists help, but missing tests or smoke runs lower confidence.
+- Test-aware problem framing: start from failure modes, not happy paths. Every material risk control should end in runnable evidence when possible. Static review and checklists help, but missing tests or smoke runs lower confidence.
 - Agent hygiene: keep changes surgical, name assumptions, choose the smallest working path, and define success in commands the agent can run.
 - SOLID + YAGNI balance: separate real responsibilities such as routing, domain rules, persistence, DTOs, and error mapping only when the current contract needs it. Avoid interfaces, factories, strategies, or plugin layers for future variants.
 
-The intended advantage is one clear trigger with internal modes for design, implementation, and review. That keeps discovery simple while still protecting correctness, security, data integrity, status codes, performance, and operational guardrails.
+The intended advantage is one clear trigger with internal modes for design, implementation, and review. That keeps discovery simple while still protecting correctness, security, data integrity, status codes, performance, and operational safeguards.
 
 ## Skill
 
@@ -20,8 +20,8 @@ The intended advantage is one clear trigger with internal modes for design, impl
 
 The skill uses one trigger with three internal modes:
 
-- Design: define contracts, invariants, guard strategy, tradeoffs, and evidence targets before implementation.
-- Implementation: make scoped API/service changes with tests and guard evidence.
+- Design: define contracts, invariants, risk controls, tradeoffs, and evidence targets before implementation.
+- Implementation: make scoped API/service changes with tests and evidence for those controls.
 - Review: report reliability, security, data-integrity, performance, compatibility, and operations findings in impact order.
 
 Explicit environment-specific evidence requests load a conditional safety reference before any invasive action.
@@ -29,7 +29,7 @@ Explicit environment-specific evidence requests load a conditional safety refere
 ## Layout
 
 - `skills/boring-backend/`: source skill package.
-- `.agents/skills/boring-backend/`: project-local Codex/Antigravity-style mirror.
+- `.agents/skills/boring-backend/`: project-local Codex and Antigravity mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
 - `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
 - `scripts/verify_all.py`: runs mirror and repository checks.
@@ -40,7 +40,7 @@ Explicit environment-specific evidence requests load a conditional safety refere
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --ref v1.2.0 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
 ```
 
 The install target contains the complete runtime package:
@@ -61,9 +61,10 @@ Common destination paths for the same folder:
 
 | Runtime | Project scope | User scope |
 |---|---|---|
-| Codex / Agents | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
+| Codex | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
-| Antigravity | `.agents/skills/boring-backend` | Product/version-specific; prefer project scope |
+| Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
+| Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
 
 Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, and `requirements-dev.txt` are repository maintenance files, not runtime skill contents.
 

@@ -20,7 +20,7 @@ Read this file only when the task touches core API/service state, idempotency, c
 
 Ask for evidence, not intent:
 
-- Is there a runnable test, smoke check, or static guard for the invariant?
+- Is there a runnable test, smoke check, or static check for the invariant?
 - Can two simultaneous requests violate the invariant?
 - Does the operation use a natural ID, uniqueness, conditional write, or durable key/fingerprint appropriate to its contract?
 - Does payload mismatch reject and replay of the terminal contract result stay stable?

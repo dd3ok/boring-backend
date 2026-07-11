@@ -10,8 +10,8 @@ Boring Backend means deliberately ordinary service code: protect real invariants
 
 ## Modes
 
-- Design: before implementation, return the contract, material risks, minimal boundaries, guard and evidence plan, assumptions, and exclusions.
-- Implementation: write the narrowest framework-native code that satisfies the contract and verifies high-risk guards; report changed files, commands/results, choices, and gaps.
+- Design: before implementation, return the contract, material risks, minimal boundaries, risk controls, evidence plan, assumptions, and exclusions.
+- Implementation: write the narrowest framework-native code that satisfies the contract and verifies controls for high-risk failures; report changed files, commands/results, choices, and gaps.
 - Review: report findings first, ordered by impact and grounded in evidence. Review-only work never edits; patch only when the user requests a fix.
 
 ## Core Rule
@@ -21,12 +21,12 @@ Correctness, security, integrity, status codes, and runnable evidence take prece
 ## Workflow
 
 1. Classify the mode from the user request. Do not create a separate design file unless the user requests one; keep necessary planning in the response.
-2. Read the request as a contract: behavior, status codes, data rules, security boundary, persistence, external calls, success criteria, and explicit guards.
+2. Read the request as a contract: behavior, status codes, data rules, security boundary, persistence, external calls, success criteria, and required safeguards.
 3. For explicitly requested environment-specific production evidence, read [production evidence](references/production-evidence.md) first. Do not perform invasive actions until its permission gate is complete; continue available read-only inspection when useful.
 4. Route only material risks with the table below. Load a linked catalog only when it can change implementation, evidence, or release caution.
 5. Resolve material correctness, security, integrity, and contract risks before package structure or style.
 6. Choose the smallest conventional boundary that owns each invariant: route/controller, service/use-case, repository/DAO, DTO/schema, transaction, or error mapping.
-7. Map each relevant guard to evidence, a finding, or a named local-only gap. Do not claim production readiness from local smoke tests.
+7. Map each relevant risk control to evidence, a finding, or a named local-only gap. Do not claim production readiness from local smoke tests.
 8. Choose evidence proportionate to the claim: static checks for loadability, unit tests for isolated behavior, integration tests for wiring, risk-specific tests for failure modes, and environment evidence for production claims. Scale detail to task size and risk.
 
 ## Risk Routing

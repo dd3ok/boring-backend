@@ -2,11 +2,9 @@
 
 Scope: this file applies only inside this repository.
 
-Use the local project skill before global skills:
+For applicable API/service work, use the repository-discovered `boring-backend` skill. Codex and Antigravity discover `.agents/skills/boring-backend/`; Claude Code discovers `.claude/skills/boring-backend/`. If a same-named user/global copy is also present, prefer the repository path and do not read both copies.
 
-- `skills/boring-backend/SKILL.md`: use for API/service reliability design, implementation, review, guard evidence, and production-readiness risk checks.
-
-Vendor-local mirrors are kept in `.agents/skills/boring-backend/` and `.claude/skills/boring-backend/`. Do not edit mirrors directly. Edit `skills/boring-backend` first. Install `requirements-dev.txt` only in a project-local virtual environment, then sync mirrors and run:
+Treat `skills/boring-backend/` as the canonical editable source, not a discovery path. Do not edit the vendor-local mirrors directly. Install `requirements-dev.txt` only in a project-local virtual environment, then sync mirrors and run:
 
 ```text
 python scripts/verify_all.py
