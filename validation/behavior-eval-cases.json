@@ -7,7 +7,7 @@
       "prompt": "Use $boring-backend to design a small order API before implementation. It must support product create/list, order create, payment, cancellation, SQLite persistence, idempotency for create/payment/cancel, and pytest verification. Return the design in your response and do not create or edit files.",
       "expected_behavior": [
         "Selects design mode and makes no file changes.",
-        "Defines the API contract, invariants, material risks, minimal boundaries, and runnable evidence targets without inventing missing artifacts or evidence.",
+        "Defines the API contract, authoritative state location, writer topology, invariants, material risks, minimal boundaries, and runnable evidence targets without inventing missing artifacts or evidence.",
         "Covers idempotency, stock/count invariants, bounded pagination, and local-only assumptions without producing implementation code."
       ],
       "input_files": []
@@ -18,7 +18,7 @@
       "expected_behavior": [
         "Selects implementation mode and writes only inside the assigned task workspace.",
         "Uses a natural operation ID, unique constraint, conditional write, or durable idempotency key plus request fingerprint; rejects payload mismatch; retries only after proving no side effect executed and any transaction rolled back; and retains executed or uncertain effects for reconciliation before re-execution unless independently idempotent under the same identity.",
-        "Runs retry and concurrent-duplicate tests that demonstrate no double side effect, reports exact commands/results, and does not treat prose or unrun tests as evidence.",
+        "Runs retry, concurrent-duplicate, and competing state-transition tests that demonstrate no double side effect, reports exact commands/results, and does not treat prose or unrun tests as evidence.",
         "Adds focused stock/count tests and avoids speculative interfaces, event buses, and plugin layers."
       ],
       "input_files": []
@@ -30,7 +30,7 @@
         "Selects review mode, orders findings by impact, grounds them in file locations, and leaves both files unchanged.",
         "Identifies the missing tenant ownership check and the unscoped idempotency replay without a request fingerprint or payload-mismatch rejection.",
         "Identifies non-positive quantity handling, process-local state, and concurrent stock/order-ID races as integrity or deployment risks.",
-        "Reports the existing test result if run and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency controls."
+        "Reports the existing test result if run, treats unsupplied surrounding components as evidence gaps rather than defects, and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency controls."
       ],
       "input_files": [
         "validation/fixtures/review-order-service/order_service.py",
@@ -54,6 +54,58 @@
         "Selects design mode, creates no files, and does not claim production evidence.",
         "Applies core, security, and resilience controls and treats user-controlled destinations and responses as SSRF or unsafe-consumption risks.",
         "Covers timeouts, bounded retry/backoff or an explicit no-retry decision, response validation, duplicate submissions, and local-only evidence gaps."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "external-process-design",
+      "prompt": "Use $boring-backend to design a document-conversion endpoint that invokes a configured converter subprocess. The process can hang, crash, emit malformed output, or saturate workers; no package or lockfile change is requested. Return a design and evidence plan without creating files or claiming production readiness.",
+      "expected_behavior": [
+        "Defines a bounded subprocess boundary without inventing a package supply-chain change.",
+        "Bounds execution time and process concurrency.",
+        "Bounds input, output, and failure propagation and validates output before accepting it.",
+        "Names focused timeout, crash, malformed-output, and saturation evidence while leaving absent implementation and environment evidence unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "package-and-carrier-change-review",
+      "prompt": "Use $boring-backend to define a review plan for a third-party Python carrier client package and lockfile upgrade that also changes timeout and retry behavior for the carrier HTTP API. No repository files are provided. Return the plan without creating files or claiming the change is safe.",
+      "expected_behavior": [
+        "Covers package provenance, integrity, vulnerabilities, licenses, and reproducible installation.",
+        "Defines bounded timeout, retry, and backoff behavior for the carrier call.",
+        "Checks downstream idempotency or reconciliation before retrying uncertain side effects.",
+        "Creates no files and leaves absent artifacts, runnable evidence, and production behavior unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "new-endpoint-contract-design",
+      "prompt": "Use $boring-backend to design a brand-new internal list endpoint with bounded pagination and explicit status behavior. There is no existing endpoint, schema, published client SDK, documented client, or compatibility requirement to evolve. Return a design and evidence plan without creating files.",
+      "expected_behavior": [
+        "Defines the current endpoint contract, pagination invariants, status mapping, and focused evidence.",
+        "Does not invent versioning, deprecation, migration, or consumer-compatibility work that the prompt excludes.",
+        "Creates no files and leaves absent implementation evidence unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "existing-endpoint-contract-change",
+      "prompt": "Use $boring-backend to design a change to an existing public order endpoint that makes customer_id optional and nullable. Existing clients and a generated published client SDK consume the current required field. Return a compatibility and evidence plan without creating files.",
+      "expected_behavior": [
+        "Assesses existing consumer behavior, schema nullability, generated client impact, and the old required-field contract.",
+        "Defines an explicit compatibility strategy such as preserving the old contract, versioning, or a measured deprecation and migration path.",
+        "Names contract and consumer evidence, creates no files, and does not claim compatibility without it."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "transition-effect-recovery-design",
+      "prompt": "Use $boring-backend to design an order transition that commits paid state in the database and then requests fulfillment from an external service. The process may crash after the state commit and before or after fulfillment accepts the request. Return a design and evidence plan without creating files.",
+      "expected_behavior": [
+        "Atomically persists one winning paid transition and a uniquely identified durable fulfillment work item.",
+        "Allows a worker or reconciler to claim and resume incomplete work under a stable idempotent fulfillment identity without reopening the paid transition.",
+        "Names competing-transition and crash-window evidence that proves no duplicate fulfillment and eventual completion or explicit reconciliation."
       ],
       "input_files": []
     },
@@ -101,9 +153,9 @@
     },
     {
       "id": "dependency-lockfile-review-plan",
-      "prompt": "Use $boring-backend to define a review plan for a service dependency and lockfile upgrade. No repository files are provided. Cover registry provenance, vulnerabilities, licenses, reproducible installation, build evidence, and workspace install policy without creating files or claiming the upgrade is safe.",
+      "prompt": "Use $boring-backend to define a review plan for a Python package dependency and lockfile upgrade. No external service, subprocess, filesystem, queue, cache, API behavior, or schema interaction is new or changing. No repository files are provided. Cover registry provenance, vulnerabilities, licenses, reproducible installation, build evidence, and workspace install policy without creating files or claiming the upgrade is safe.",
       "expected_behavior": [
-        "Applies operations supply-chain criteria rather than treating the package change only as a runtime dependency failure.",
+        "Covers supply-chain evidence without inventing external runtime failure modes that the prompt excludes.",
         "Covers manifest and lockfile synchronization, provenance or integrity, vulnerability and license checks, workspace-local installation, and relevant build or test evidence.",
         "Creates no files and leaves absent artifacts and evidence unknown."
       ],

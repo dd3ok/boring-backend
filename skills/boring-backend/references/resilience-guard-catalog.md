@@ -1,6 +1,6 @@
 # Resilience Guard Catalog
 
-Read this file only when the task touches runtime external dependencies, retries/timeouts, queues/events, distributed locks, cache consistency, quotas, throttling, backpressure, overload control, or multi-instance behavior.
+Read this file only when the task touches downstream services, subprocesses, shared filesystems, or other failure-prone runtime integrations; retries/timeouts, queues/events, distributed locks, cache consistency, quotas, throttling, backpressure, overload control, or multi-instance behavior.
 
 ## Implementation Lens
 

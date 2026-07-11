@@ -1,6 +1,6 @@
 # Compatibility Governance Guard Catalog
 
-Read this file only when the task touches public/internal APIs, OpenAPI/Proto/GraphQL schemas, SDKs, versioning, deprecation, request/response fields, enums, status codes, pagination/filtering/sorting, idempotency semantics, or documented client behavior.
+Read this file only when an existing API, schema, published client SDK, or documented client behavior evolves, or when versioning, deprecation, or consumer compatibility is material.
 
 ## Implementation Lens
 
