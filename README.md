@@ -40,7 +40,7 @@ Explicit requests for evidence from a named staging or production environment lo
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --ref v1.2.2 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.3 --path skills/boring-backend
 ```
 
 Unless a destination is supplied, `skill-installer` installs the package at `$CODEX_HOME/skills/boring-backend` (usually `~/.codex/skills/boring-backend`).

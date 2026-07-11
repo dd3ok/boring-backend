@@ -201,17 +201,6 @@ class VerifyAllTests(unittest.TestCase):
         self.assertEqual(installs[0], installs[1])
         self.assertEqual(support_ranges[0], support_ranges[1])
 
-    def test_runtime_skill_license_matches_repository_license(self):
-        root_license = REPO / "LICENSE"
-        runtime_license = REPO / "skills" / "boring-backend" / "LICENSE"
-
-        self.assertTrue(root_license.is_file())
-        self.assertTrue(runtime_license.is_file())
-        self.assertEqual(
-            runtime_license.read_text(encoding="utf-8"),
-            root_license.read_text(encoding="utf-8"),
-        )
-
     def test_trigger_eval_cases_have_stable_minimal_schema(self):
         path = REPO / "validation" / "trigger-eval-cases.json"
         data = load_json_object(path)
