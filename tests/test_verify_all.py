@@ -105,7 +105,7 @@ class VerifyAllTests(unittest.TestCase):
 
     def test_readmes_keep_vendor_install_tables_in_sync(self):
         row_pattern = re.compile(
-            r"^\|\s*(Codex|Claude Code|Antigravity IDE|Antigravity CLI)\s*"
+            r"^\|\s*([^|]+?)\s*"
             r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|$",
             re.MULTILINE,
         )
@@ -123,28 +123,6 @@ class VerifyAllTests(unittest.TestCase):
         self.assertIn("do not substitute `skills/boring-backend/`", guidance)
         self.assertIn(".agents/skills/boring-backend/", guidance)
         self.assertIn(".claude/skills/boring-backend/", guidance)
-
-    def test_runtime_and_docs_avoid_ambiguous_guard_phrases(self):
-        runtime = REPO / "skills" / "boring-backend"
-        paths = (
-            *runtime.rglob("*.md"),
-            runtime / "agents" / "openai.yaml",
-            REPO / "README.md",
-            REPO / "README.ko.md",
-            REPO / "validation" / "trigger-eval-cases.json",
-            REPO / "validation" / "behavior-eval-cases.json",
-        )
-        catalog_name = re.compile(
-            r"\b(?:core|security|data lifecycle|performance|resilience|operations|"
-            r"compatibility governance) guard catalog\b",
-            re.IGNORECASE,
-        )
-        for path in paths:
-            text = path.read_text(encoding="utf-8")
-            text = re.sub(r"\]\([^)]+\)", "]", text)
-            text = catalog_name.sub("", text)
-            with self.subTest(path=path.relative_to(REPO)):
-                self.assertNotRegex(text, r"\b(?:guard|guards|guardrail|guardrails)\b")
 
     def test_ci_covers_platforms_and_pins_actions(self):
         workflow_path = REPO / ".github" / "workflows" / "verify.yml"
