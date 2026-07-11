@@ -48,7 +48,3 @@ If multiple rows match, load only the catalogs needed to decide the material ris
 When the user requests a behavior fix, add and run a failing-then-passing regression test when feasible. If that is infeasible, use the strongest practical evidence and name the reason and residual gap. Review-only work must not add or modify tests; an observed pre-existing RED test is evidence, not a fix.
 
 Patch the narrowest code path that owns the invariant. Keep unrelated refactors out. Preserve public API unless the contract requires change.
-
-## Skip Conditions
-
-Do not use this skill for pure copy edits, UI-only style changes, trivial local refactors, metadata-only edits, or docs-only work that cannot affect state, auth, API contracts, external calls, persistence, performance, distributed behavior, or operational risk.
