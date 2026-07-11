@@ -103,26 +103,24 @@ class VerifyAllTests(unittest.TestCase):
                 self.assertIn("python3 scripts/verify_all.py", text)
                 self.assertIn("py -3 scripts/verify_all.py", text)
 
-    def test_docs_distinguish_discovery_editing_and_vendor_install_paths(self):
-        readmes = [
-            (REPO / "README.md").read_text(encoding="utf-8"),
-            (REPO / "README.ko.md").read_text(encoding="utf-8"),
-        ]
-        install_paths = (
-            "$HOME/.agents/skills/boring-backend",
-            "~/.claude/skills/boring-backend",
-            "~/.gemini/config/skills/boring-backend",
-            "~/.gemini/antigravity-cli/skills/boring-backend",
+    def test_readmes_keep_vendor_install_tables_in_sync(self):
+        row_pattern = re.compile(
+            r"^\|\s*(Codex|Claude Code|Antigravity IDE|Antigravity CLI)\s*"
+            r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|$",
+            re.MULTILINE,
         )
-        for text in readmes:
-            for install_path in install_paths:
-                with self.subTest(install_path=install_path):
-                    self.assertIn(install_path, text)
+        tables = []
+        for path in (REPO / "README.md", REPO / "README.ko.md"):
+            rows = row_pattern.findall(path.read_text(encoding="utf-8"))
+            self.assertTrue(rows, f"missing vendor install table in {path}")
+            tables.append(rows)
+        self.assertEqual(tables[0], tables[1])
 
+    def test_repo_guidance_distinguishes_discovery_and_editing_paths(self):
         guidance = (REPO / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("repository-discovered `boring-backend` skill", guidance)
         self.assertIn("canonical editable source, not a discovery path", guidance)
-        self.assertIn("do not read both copies", guidance)
+        self.assertIn("report the conflict", guidance)
+        self.assertIn("do not substitute `skills/boring-backend/`", guidance)
         self.assertIn(".agents/skills/boring-backend/", guidance)
         self.assertIn(".claude/skills/boring-backend/", guidance)
 

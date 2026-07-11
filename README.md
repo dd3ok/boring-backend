@@ -43,6 +43,8 @@ With Codex `skill-installer`, install only the runtime skill folder:
 --repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
 ```
 
+Unless a destination is supplied, `skill-installer` installs the package at `$CODEX_HOME/skills/boring-backend` (usually `~/.codex/skills/boring-backend`).
+
 The install target contains the complete runtime package:
 
 ```text
@@ -65,6 +67,8 @@ Common destination paths for the same folder:
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 | Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
+
+Current path references: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide), and [Antigravity CLI](https://antigravity.google/docs/cli-plugins).
 
 Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, and `requirements-dev.txt` are repository maintenance files, not runtime skill contents.
 

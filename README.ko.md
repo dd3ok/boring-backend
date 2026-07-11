@@ -45,6 +45,8 @@ Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니
 --repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
 ```
 
+별도 설치 위치를 지정하지 않으면 `skill-installer`는 `$CODEX_HOME/skills/boring-backend`에 설치합니다. 일반적인 기본 경로는 `~/.codex/skills/boring-backend`입니다.
+
 설치 대상에는 완전한 runtime 패키지만 들어 있습니다.
 
 ```text
@@ -67,6 +69,8 @@ boring-backend/
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
 | Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
+
+현재 경로의 공식 문서: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide), [Antigravity CLI](https://antigravity.google/docs/cli-plugins).
 
 저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 
