@@ -6,7 +6,9 @@ Read this file only for explicitly requested evidence from a named staging or pr
 
 Default to read-only inspection of existing dashboards, logs, traces, plans, canary results, and drill reports within current access.
 
-Treat load or failure injection, restore or rollback rehearsal, and any mutating or disruptive action as invasive. Before execution, confirm the target environment, affected users/data/services, expected impact, time/rate/concurrency/blast-radius limits, stop thresholds, and recovery/rollback conditions. Then obtain separate explicit approval; a general production-evidence request is not execution approval. If the gate is incomplete, stop execution planning and do not load a risk catalog solely for the blocked action.
+Treat load or failure injection, restore or rollback rehearsal, and any mutating or disruptive action as invasive. First establish the safety envelope: target environment, affected users/data/services, expected impact, time/rate/concurrency/blast-radius limits, stop thresholds, and recovery/rollback conditions. If any are missing, request them, continue useful read-only inspection, and stop before detailed execution planning or loading a risk catalog solely for the blocked action.
+
+Once the safety envelope is complete, prepare a bounded plan. Obtain separate explicit approval of that plan before execution; a general production-evidence request is not execution approval.
 
 Stop on a threshold breach, unexpected impact, loss of observability, or uncertain recovery, and execute the agreed recovery path.
 
