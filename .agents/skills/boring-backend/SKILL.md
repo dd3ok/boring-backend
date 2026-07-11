@@ -22,7 +22,7 @@ Correctness, security, integrity, status codes, and runnable evidence take prece
 
 1. Classify the mode from the user request. Do not create a separate design file unless the user requests one; keep necessary planning in the response.
 2. Read the request as a contract: behavior, status codes, data rules, security boundary, persistence, external calls, success criteria, and required safeguards.
-3. For explicitly requested evidence from a named staging or production environment, including live telemetry, read [production evidence](references/production-evidence.md) first. Complete the permission gate before invasive action or loading execution-only catalogs; continue available read-only inspection when useful.
+3. For explicitly requested evidence from a named staging or production environment, including live telemetry, read [production evidence](references/production-evidence.md) first. Complete its permission gate before invasive action. Until then, stop execution planning and do not load a risk catalog solely for that action; continue useful read-only inspection.
 4. Route only material risks with the table below. Load a linked catalog only when it can change implementation, evidence, or release caution.
 5. Resolve material correctness, security, integrity, and contract risks before package structure or style.
 6. Choose the smallest conventional boundary that owns each invariant: route/controller, service/use-case, repository/DAO, DTO/schema, transaction, or error mapping.
