@@ -7,7 +7,7 @@
       "prompt": "Use $boring-backend to design a small order API before implementation. It must support product create/list, order create, payment, cancellation, SQLite persistence, idempotency for create/payment/cancel, and pytest verification. Return the design in your response and do not create or edit files.",
       "expected_behavior": [
         "Selects design mode and makes no file changes.",
-        "Defines the API contract, invariants, material risks, minimal boundaries, and runnable evidence targets without inventing missing artifacts or evidence.",
+        "Defines the API contract, authoritative state location, writer topology, invariants, material risks, minimal boundaries, and runnable evidence targets without inventing missing artifacts or evidence.",
         "Covers idempotency, stock/count invariants, bounded pagination, and local-only assumptions without producing implementation code."
       ],
       "input_files": []
@@ -18,7 +18,7 @@
       "expected_behavior": [
         "Selects implementation mode and writes only inside the assigned task workspace.",
         "Uses a natural operation ID, unique constraint, conditional write, or durable idempotency key plus request fingerprint; rejects payload mismatch; retries only after proving no side effect executed and any transaction rolled back; and retains executed or uncertain effects for reconciliation before re-execution unless independently idempotent under the same identity.",
-        "Runs retry and concurrent-duplicate tests that demonstrate no double side effect, reports exact commands/results, and does not treat prose or unrun tests as evidence.",
+        "Runs retry, concurrent-duplicate, and competing state-transition tests that demonstrate no double side effect, reports exact commands/results, and does not treat prose or unrun tests as evidence.",
         "Adds focused stock/count tests and avoids speculative interfaces, event buses, and plugin layers."
       ],
       "input_files": []
@@ -30,7 +30,7 @@
         "Selects review mode, orders findings by impact, grounds them in file locations, and leaves both files unchanged.",
         "Identifies the missing tenant ownership check and the unscoped idempotency replay without a request fingerprint or payload-mismatch rejection.",
         "Identifies non-positive quantity handling, process-local state, and concurrent stock/order-ID races as integrity or deployment risks.",
-        "Reports the existing test result if run and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency controls."
+        "Reports the existing test result if run, treats unsupplied surrounding components as evidence gaps rather than defects, and does not treat the happy-path coverage as proof for authorization, mismatch, or concurrency controls."
       ],
       "input_files": [
         "validation/fixtures/review-order-service/order_service.py",

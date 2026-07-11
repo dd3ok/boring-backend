@@ -12,7 +12,7 @@ Boring Backend means deliberately ordinary service code: protect real invariants
 
 - Design: before implementation, return the contract, material risks, minimal boundaries, risk controls, evidence plan, assumptions, and exclusions.
 - Implementation: write the narrowest framework-native code that satisfies the contract and verifies controls for high-risk failures; report changed files, commands/results, choices, and gaps.
-- Review: report findings first, ordered by impact and grounded in evidence. Review-only work never edits; patch only when the user requests a fix.
+- Review: report findings first, ordered by impact and grounded in evidence. For partial artifacts, treat unsupplied surrounding components as evidence gaps, not defects, unless the contract requires the artifact itself to be complete or runnable. Review-only work never edits; patch only when the user requests a fix.
 
 ## Core Rule
 
@@ -21,7 +21,7 @@ Correctness, security, integrity, status codes, and runnable evidence take prece
 ## Workflow
 
 1. Classify the mode from the user request. Do not create a separate design file unless the user requests one; keep necessary planning in the response.
-2. Read the request as a contract: behavior, status codes, data rules, security boundary, persistence, external calls, success criteria, and required safeguards.
+2. Read the request as a contract: behavior, status codes, data rules, security boundary, authoritative state and where it is stored, runtime and writer topology, consistency and retry semantics, external calls, success criteria, and required safeguards.
 3. For explicitly requested evidence from a named staging or production environment, including live telemetry, read [production evidence](references/production-evidence.md) first. Follow its staged gate: establish the safety envelope, prepare a bounded plan, obtain separate execution approval, then perform invasive action.
 4. Route only material risks with the table below. Load a linked catalog only when it can change implementation, evidence, or release caution.
 5. Resolve material correctness, security, integrity, and contract risks before package structure or style.
