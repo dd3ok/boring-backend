@@ -58,6 +58,58 @@
       "input_files": []
     },
     {
+      "id": "external-process-design",
+      "prompt": "Use $boring-backend to design a document-conversion endpoint that invokes a configured converter subprocess. The process can hang, crash, emit malformed output, or saturate workers; no package or lockfile change is requested. Return a design and evidence plan without creating files or claiming production readiness.",
+      "expected_behavior": [
+        "Defines a bounded subprocess boundary without inventing a package supply-chain change.",
+        "Bounds execution time and process concurrency.",
+        "Bounds input, output, and failure propagation and validates output before accepting it.",
+        "Names focused timeout, crash, malformed-output, and saturation evidence while leaving absent implementation and environment evidence unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "package-and-carrier-change-review",
+      "prompt": "Use $boring-backend to define a review plan for a third-party Python carrier client package and lockfile upgrade that also changes timeout and retry behavior for the carrier HTTP API. No repository files are provided. Return the plan without creating files or claiming the change is safe.",
+      "expected_behavior": [
+        "Covers package provenance, integrity, vulnerabilities, licenses, and reproducible installation.",
+        "Defines bounded timeout, retry, and backoff behavior for the carrier call.",
+        "Checks downstream idempotency or reconciliation before retrying uncertain side effects.",
+        "Creates no files and leaves absent artifacts, runnable evidence, and production behavior unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "new-endpoint-contract-design",
+      "prompt": "Use $boring-backend to design a brand-new internal list endpoint with bounded pagination and explicit status behavior. There is no existing endpoint, schema, published client SDK, documented client, or compatibility requirement to evolve. Return a design and evidence plan without creating files.",
+      "expected_behavior": [
+        "Defines the current endpoint contract, pagination invariants, status mapping, and focused evidence.",
+        "Does not invent versioning, deprecation, migration, or consumer-compatibility work that the prompt excludes.",
+        "Creates no files and leaves absent implementation evidence unknown."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "existing-endpoint-contract-change",
+      "prompt": "Use $boring-backend to design a change to an existing public order endpoint that makes customer_id optional and nullable. Existing clients and a generated published client SDK consume the current required field. Return a compatibility and evidence plan without creating files.",
+      "expected_behavior": [
+        "Assesses existing consumer behavior, schema nullability, generated client impact, and the old required-field contract.",
+        "Defines an explicit compatibility strategy such as preserving the old contract, versioning, or a measured deprecation and migration path.",
+        "Names contract and consumer evidence, creates no files, and does not claim compatibility without it."
+      ],
+      "input_files": []
+    },
+    {
+      "id": "transition-effect-recovery-design",
+      "prompt": "Use $boring-backend to design an order transition that commits paid state in the database and then requests fulfillment from an external service. The process may crash after the state commit and before or after fulfillment accepts the request. Return a design and evidence plan without creating files.",
+      "expected_behavior": [
+        "Atomically persists one winning paid transition and a uniquely identified durable fulfillment work item.",
+        "Allows a worker or reconciler to claim and resume incomplete work under a stable idempotent fulfillment identity without reopening the paid transition.",
+        "Names competing-transition and crash-window evidence that proves no duplicate fulfillment and eventual completion or explicit reconciliation."
+      ],
+      "input_files": []
+    },
+    {
       "id": "production-readiness-plan",
       "prompt": "Use $boring-backend to define a pre-launch review plan for an API when no implementation or environment evidence is provided. Focus on production readiness, architecture, security, scalability, deployment, observability, and resource risk. Do not create files or claim that the API is ready.",
       "expected_behavior": [
@@ -101,9 +153,9 @@
     },
     {
       "id": "dependency-lockfile-review-plan",
-      "prompt": "Use $boring-backend to define a review plan for a service dependency and lockfile upgrade. No repository files are provided. Cover registry provenance, vulnerabilities, licenses, reproducible installation, build evidence, and workspace install policy without creating files or claiming the upgrade is safe.",
+      "prompt": "Use $boring-backend to define a review plan for a Python package dependency and lockfile upgrade. No external service, subprocess, filesystem, queue, cache, API behavior, or schema interaction is new or changing. No repository files are provided. Cover registry provenance, vulnerabilities, licenses, reproducible installation, build evidence, and workspace install policy without creating files or claiming the upgrade is safe.",
       "expected_behavior": [
-        "Applies operations supply-chain criteria rather than treating the package change only as a runtime dependency failure.",
+        "Covers supply-chain evidence without inventing external runtime failure modes that the prompt excludes.",
         "Covers manifest and lockfile synchronization, provenance or integrity, vulnerability and license checks, workspace-local installation, and relevant build or test evidence.",
         "Creates no files and leaves absent artifacts and evidence unknown."
       ],

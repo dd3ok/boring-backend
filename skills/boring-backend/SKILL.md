@@ -37,9 +37,9 @@ Correctness, security, integrity, status codes, and runnable evidence take prece
 | Authentication/authorization, tenant/owner boundary, sensitive-flow abuse, public field binding, sensitive data/logging, CORS/TLS, user-controlled URLs, untrusted responses, or interpreter inputs | [security guard catalog](references/security-guard-catalog.md) |
 | Durable schema/model, constraints/indexes, migrations/backfills, isolation/locking, replication, retention/deletion, audit, or restore | [data lifecycle catalog](references/data-lifecycle-guard-catalog.md) |
 | Performance claim, high-traffic path, large list/search/export/bulk, query plan/index/N+1/pool/payload, or cache optimization | [performance catalog](references/performance-guard-catalog.md) |
-| Runtime dependencies, retries/timeouts, queues/events, distributed locks, cache consistency, quotas, backpressure, or overload | [resilience catalog](references/resilience-guard-catalog.md) |
+| Downstream services, subprocesses, shared filesystems, or other failure-prone runtime integrations; retries/timeouts, queues/events, distributed locks, cache consistency, quotas, backpressure, or overload | [resilience catalog](references/resilience-guard-catalog.md) |
 | Package supply chain, production readiness, observability/SLOs, rollout/rollback, incident readiness, or cost/resource risk | [operations catalog](references/operations-guard-catalog.md) |
-| Existing API/schema evolution, versioning/deprecation, field/type/nullability/enum changes, client semantics, or SDKs | [compatibility catalog](references/compatibility-governance-guard-catalog.md) |
+| Existing API/schema or published client SDK evolution, versioning/deprecation, field/type/nullability/enum changes, or client semantics | [compatibility catalog](references/compatibility-governance-guard-catalog.md) |
 
 If multiple rows match, load only the catalogs needed to decide the material risk. A negated or excluded topic is not a trigger by itself; load its catalog when the remaining contract still makes the risk material. Core owns current endpoint behavior; compatibility owns evolution of externally visible behavior.
 
