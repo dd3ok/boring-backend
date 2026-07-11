@@ -6,7 +6,7 @@ Read this file only when the task touches schema design, constraints, migrations
 
 | Risk | Implement or Report |
 |---|---|
-| Data model invariant | Prefer database constraints, unique indexes, exclusion constraints, foreign keys, and check constraints for durable invariants. Application validation alone is a local guard when concurrent or external writers exist. |
+| Data model invariant | Prefer database constraints, unique indexes, exclusion constraints, foreign keys, and check constraints for durable invariants. Application validation alone is a local-only control when concurrent or external writers exist. |
 | Constraint and index ownership | Name which layer owns each invariant and which index supports the constraint or query path. Include referencing-column indexes when foreign-key deletes/updates or joins can become hot. |
 | Transaction isolation | State whether read committed is enough. Use row locks, optimistic versions, repeatable read/serializable with safe retry, or atomic conditional updates when stale reads can corrupt state. |
 | Locking and deadlocks | Keep transactions short, acquire locks in a consistent order, avoid network/user waits inside transactions, and define timeout/retry behavior for deadlocks or serialization failures. |
