@@ -4,7 +4,7 @@ Scope: this file applies only inside this repository.
 
 For applicable API/service work, use the repository-discovered `boring-backend` skill:
 
-- Codex and Antigravity: use `.agents/skills/boring-backend/`. If another same-named copy is visible, select the repository path and do not read both copies.
+- Codex and Antigravity IDE: use `.agents/skills/boring-backend/`. If another same-named copy is visible, select the repository path and do not read both copies.
 - Claude Code: use `.claude/skills/boring-backend/`. If an enterprise or personal copy with higher precedence hides the project skill, report the conflict; do not substitute `skills/boring-backend/` or combine copies.
 
 Treat `skills/boring-backend/` as the canonical editable source, not a discovery path. Do not edit the vendor-local mirrors directly. Install `requirements-dev.txt` only in a project-local virtual environment, then sync mirrors and run:

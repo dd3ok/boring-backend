@@ -1,12 +1,12 @@
 # Production Evidence
 
-Read this file only for explicitly requested environment-specific production evidence.
+Read this file only for explicitly requested evidence from a named staging or production environment, including live telemetry.
 
 ## Permission Gate
 
 Default to read-only inspection of existing dashboards, logs, traces, plans, canary results, and drill reports within current access.
 
-Treat load or failure injection, restore or rollback rehearsal, and any mutating or disruptive action as invasive. Before execution, confirm the target environment, affected users/data/services, expected impact, time/rate/concurrency/blast-radius limits, stop thresholds, and recovery/rollback conditions. Then obtain separate explicit approval; a general production-evidence request is not execution approval.
+Treat load or failure injection, restore or rollback rehearsal, and any mutating or disruptive action as invasive. Before execution, confirm the target environment, affected users/data/services, expected impact, time/rate/concurrency/blast-radius limits, stop thresholds, and recovery/rollback conditions. Then obtain separate explicit approval; a general production-evidence request is not execution approval. If the gate is incomplete, stop before execution planning or execution-specific catalog loading.
 
 Stop on a threshold breach, unexpected impact, loss of observability, or uncertain recovery, and execute the agreed recovery path.
 

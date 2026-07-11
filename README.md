@@ -24,12 +24,12 @@ The skill uses one trigger with three internal modes:
 - Implementation: make scoped API/service changes with tests and evidence for those controls.
 - Review: report reliability, security, data-integrity, performance, compatibility, and operations findings in impact order.
 
-Explicit environment-specific evidence requests load a conditional safety reference before any invasive action.
+Explicit requests for evidence from a named staging or production environment load a conditional safety reference before any invasive action.
 
 ## Layout
 
 - `skills/boring-backend/`: source skill package.
-- `.agents/skills/boring-backend/`: project-local Codex and Antigravity mirror.
+- `.agents/skills/boring-backend/`: project-local Codex and Antigravity IDE mirror.
 - `.claude/skills/boring-backend/`: project-local Claude Code mirror.
 - `validation/`: repository-level behavior, trigger, and fairness evaluation inputs; intentionally outside the installed runtime skill.
 - `scripts/verify_all.py`: runs mirror and repository checks.
@@ -40,7 +40,7 @@ Explicit environment-specific evidence requests load a conditional safety refere
 With Codex `skill-installer`, install only the runtime skill folder:
 
 ```text
---repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.2 --path skills/boring-backend
 ```
 
 Unless a destination is supplied, `skill-installer` installs the package at `$CODEX_HOME/skills/boring-backend` (usually `~/.codex/skills/boring-backend`).
@@ -66,9 +66,8 @@ Common destination paths for the same folder:
 | Codex | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
-| Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
 
-Current path references: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide), and [Antigravity CLI](https://antigravity.google/docs/cli-plugins).
+Current path references: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), and [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide).
 
 Do not install the repository root. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, and `requirements-dev.txt` are repository maintenance files, not runtime skill contents.
 

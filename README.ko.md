@@ -26,12 +26,12 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 - Implementation: 범위를 통제하면서 API/service 코드를 구현하고, 테스트와 위험 통제의 검증 근거를 남깁니다.
 - Review: 신뢰성, 보안, 데이터 무결성, 성능, 호환성, 운영 리스크를 영향도 순으로 보고합니다.
 
-환경별 운영 증거를 명시적으로 요청한 경우에는 침습적 작업 전에 조건부 안전 reference를 읽습니다.
+명시적으로 지정한 staging 또는 production 환경의 증거를 요청한 경우에는 침습적 작업 전에 조건부 안전 reference를 읽습니다.
 
 ## 구조
 
 - `skills/boring-backend/`: 원본 skill 패키지입니다.
-- `.agents/skills/boring-backend/`: Codex와 Antigravity용 프로젝트 로컬 미러입니다.
+- `.agents/skills/boring-backend/`: Codex와 Antigravity IDE용 프로젝트 로컬 미러입니다.
 - `.claude/skills/boring-backend/`: Claude Code용 프로젝트 로컬 미러입니다.
 - `validation/`: 레포 유지보수용 behavior, trigger, fairness 평가 입력입니다. 설치되는 runtime skill 밖에 둡니다.
 - `scripts/verify_all.py`: 미러와 레포 검증을 한 번에 실행합니다.
@@ -42,7 +42,7 @@ Boring Backend는 AI 코딩 에이전트가 흔히 보이는 문제를 줄이기
 Codex `skill-installer`를 사용할 때는 runtime skill 폴더만 설치합니다.
 
 ```text
---repo dd3ok/boring-backend --ref v1.2.1 --path skills/boring-backend
+--repo dd3ok/boring-backend --ref v1.2.2 --path skills/boring-backend
 ```
 
 별도 설치 위치를 지정하지 않으면 `skill-installer`는 `$CODEX_HOME/skills/boring-backend`에 설치합니다. 일반적인 기본 경로는 `~/.codex/skills/boring-backend`입니다.
@@ -68,9 +68,8 @@ boring-backend/
 | Codex | `.agents/skills/boring-backend` | `$HOME/.agents/skills/boring-backend` |
 | Claude Code | `.claude/skills/boring-backend` | `~/.claude/skills/boring-backend` |
 | Antigravity IDE | `.agents/skills/boring-backend` | `~/.gemini/config/skills/boring-backend` |
-| Antigravity CLI | `.agents/skills/boring-backend` | `~/.gemini/antigravity-cli/skills/boring-backend` |
 
-현재 경로의 공식 문서: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide), [Antigravity CLI](https://antigravity.google/docs/cli-plugins).
+현재 경로의 공식 문서: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Antigravity IDE](https://antigravity.google/docs/skills?app=antigravity-ide).
 
 저장소 루트 전체를 설치하지 마세요. `.agents/`, `.claude/`, `.github/`, `validation/`, `tests/`, `scripts/`, `requirements-dev.txt`는 저장소 유지보수 파일이며 runtime skill에 포함되지 않습니다.
 

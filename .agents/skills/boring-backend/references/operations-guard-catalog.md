@@ -21,7 +21,7 @@ Use this lens only when launch, deployment, migration, rollback, or production-r
 - Name rollout mode: canary, staged, feature flag, dark launch, or all-at-once.
 - Name rollback path: code rollback, config rollback, data rollback limited, or forward-fix only.
 - Identify observability needed before launch: dashboard, alert, request ID, error rate, latency, saturation, and dependency health.
-- Define post-deploy validation: smoke, synthetic check, canary metric, error-budget check, or named local-only gap.
+- Define post-deploy validation: smoke, synthetic check, canary metric, error-budget check, or named evidence gap.
 - Name runbook gaps for detection, mitigation, owner, and escalation.
 
 ## Review Lens
